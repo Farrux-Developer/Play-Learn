@@ -1,0 +1,104 @@
+/**
+ * Design Tokens: Dark-navy void, Core orb glow, glass surfaces, typography, and motion curves.
+ * Strictly token-driven to avoid magic numbers across layout and game styles.
+ */
+:root {
+  /* Void & Surface Palette */
+  --void: #01050F;
+  --void-elevated: #050C1F;
+  --bg-deep: #071129;
+  --bg-surface: rgba(10, 20, 44, 0.72);
+  --bg-surface-strong: rgba(12, 24, 52, 0.90);
+  --bg-surface-hover: rgba(18, 34, 72, 0.84);
+  --bg-dock: rgba(6, 13, 30, 0.86);
+  --bg-code: #040A18;
+
+  /* Core & Neon Accents */
+  --cyan: #38BDF8;
+  --cyan-bright: #7DD3FC;
+  --cyan-dim: rgba(56, 189, 248, 0.16);
+  --blue: #2563EB;
+  --indigo: #6366F1;
+  --violet: #8B5CF6;
+  --emerald: #10B981;
+  --emerald-dim: rgba(16, 185, 129, 0.16);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245, 158, 11, 0.16);
+  --rose: #FB7185;
+  --rose-dim: rgba(251, 113, 133, 0.16);
+
+  /* Text Hierarchy */
+  --text-primary: #F8FAFC;
+  --text-secondary: #C1CFE6;
+  --text-muted: #8296B8;
+  --text-inverse: #020817;
+
+  /* Borders & Glows */
+  --border-glass: rgba(148, 163, 184, 0.16);
+  --border-glass-strong: rgba(148, 163, 184, 0.28);
+  --border-glow: rgba(56, 189, 248, 0.42);
+  --glow-cyan: 0 0 32px rgba(56, 189, 248, 0.24);
+  --glow-violet: 0 0 32px rgba(139, 92, 246, 0.26);
+  --shadow-card: 0 18px 42px -18px rgba(1, 5, 15, 0.85);
+  --shadow-modal: 0 28px 80px -20px rgba(0, 0, 0, 0.92);
+
+  /* Typography */
+  --font-sans: 'Onest', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-body: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: clamp(1.65rem, 2.6vw, 2.25rem);
+  --text-hero: clamp(2.15rem, 4.6vw, 3.65rem);
+  --leading-tight: 1.14;
+  --leading-body: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-body: 0.01em;
+  --measure-max: 62ch;
+
+  /* Spacing & Layout */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --dock-width: 3.5rem;
+  --header-height: 4rem;
+  --container-max: 78rem;
+  --tap-min: 2.75rem;
+
+  /* Radii */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-pill: 9999px;
+
+  /* Glass Blur */
+  --blur-glass: blur(18px);
+  --blur-heavy: blur(28px);
+
+  /* Motion Curves & Durations */
+  --dur-fast: 160ms;
+  --dur-med: 300ms;
+  --dur-slow: 600ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* Z-index layers */
+  --z-void: 0;
+  --z-grid: 1;
+  --z-content: 10;
+  --z-dock: 30;
+  --z-header: 40;
+  --z-modal: 60;
+  --z-toast: 70;
+  --z-intro: 90;
+}
