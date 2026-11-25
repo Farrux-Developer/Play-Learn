@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Oʻyna va oʻrgan — Design System: "Surface = Mode" (Paper <-> Blueprint)
+   Palette anchors (OKLCH + hex):
+     paper:     #F6F3EA  oklch(96.1% 0.014 88)
+     ink:       #0F1E3A  oklch(23.5% 0.056 260)
+     blueprint: #0B3566  oklch(32.5% 0.108 256)
+     cobalt:    #0F4C81  oklch(40.5% 0.114 250)
+     chalk:     #EAF2FF  oklch(95.5% 0.018 254)
+     saffron:   #F5A800  oklch(77.5% 0.168 74)
+     glaze:     #19B7A6  oklch(70.2% 0.128 182)
+     coral:     #E4572E  oklch(62.5% 0.178 34)
+   ========================================================================== */
+
+@font-face {
+  font-family: "Geologica Fallback";
+  src: local("Arial"), local("Segoe UI"), local("DejaVu Sans");
+  size-adjust: 103%;
+  ascent-override: 94%;
+  descent-override: 24%;
+}
+
+@font-face {
+  font-family: "Golos Fallback";
+  src: local("Arial"), local("Segoe UI"), local("DejaVu Sans");
+  size-adjust: 101%;
+  ascent-override: 93%;
+  descent-override: 23%;
+}
+
+@theme {
+  --font-display: "Geologica Variable", "Geologica Fallback", sans-serif;
+  --font-sans: "Golos Text Variable", "Golos Fallback", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer tokens {
+  :root {
+    /* Named palette anchors */
+    --c-paper: #F6F3EA;
+    --c-paper-elevated: #FFFDF7;
+    --c-paper-inset: #EAE3D2;
+    --c-ink: #0F1E3A;
+    --c-ink-muted: #42526E;
+
+    --c-blueprint: #0B3566;
+    --c-blueprint-deep: #07264B;
+    --c-blueprint-raised: #11437D;
+    --c-cobalt: #0F4C81;
+    --c-cobalt-depth: #092E50;
+    --c-chalk: #EAF2FF;
+    --c-chalk-muted: #B6CCE8;
+
+    --c-saffron: #F5A800;
+    --c-saffron-depth: #B87900;
+    --c-glaze: #19B7A6;
+    --c-glaze-depth: #0E7C70;
+    --c-coral: #E4572E;
+    --c-coral-depth: #A63616;
+
+    /* Hierarchy radius scale (8 / 14 / 22 / 32 / pill) */
+    --r-chip: 8px;
+    --r-card: 14px;
+    --r-panel: 22px;
+    --r-sheet: 32px;
+    --r-pill: 9999px;
+
+    /* Typography scale */
+    --text-micro: clamp(0.875rem, 0.85rem + 0.12vw, 0.9375rem);
+    --text-body: clamp(1.0625rem, 1.02rem + 0.2vw, 1.15rem);
+    --text-h2: clamp(1.65rem, 1.25rem + 1.7vw, 2.45rem);
+    --text-hero: clamp(2.2rem, 1.3rem + 2.5vw, 3.55rem);
+
+    /* Motion tokens */
+    --dur-instant: 90ms;
+    --dur-fast: 160ms;
+    --dur-base: 260ms;
+    --dur-slow: 420ms;
+    --dur-hero: 900ms;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --spring-soft: linear(
+      0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 17.5%,
+      1.017 20.4%, 1.063 23.6%, 1.076 26.2%, 1.072 29.2%, 1.018 40.9%,
+      0.996 49.3%, 0.998 63%, 1
+    );
+    --spring-bouncy: linear(
+      0, 0.012, 0.048 2%, 0.19 4.2%, 0.902 12.1%, 1.106 16.5%,
+      1.132 19.6%, 1.084 24%, 0.985 33.4%, 0.978 37.8%, 1.005 49%, 1
+    );
+
+    /* Pointer tracking coordinates (updated by single shared pointer handler) */
+    --mx: 50%;
+    --my: 50%;
+    --vt-x: 50vw;
+    --vt-y: 50vh;
+  }
+
+  /* Semantic tokens: PAPER ("Understand") */
+  [data-surface="paper"] {
+    --surface: var(--c-paper);
+    --surface-raised: var(--c-paper-elevated);
+    --surface-inset: var(--c-paper-inset);
+    --on-surface: var(--c-ink);
+    --on-surface-muted: var(--c-ink-muted);
+    --line: oklch(23.5% 0.056 260 / 0.18);
+    --line-strong: oklch(23.5% 0.056 260 / 0.36);
+    --accent: var(--c-cobalt);
+    --accent-depth: var(--c-cobalt-depth);
+    --on-accent: #FFFFFF;
+    --reward: var(--c-saffron);
+    --ok: var(--c-glaze);
+    --warn: var(--c-coral);
+
+    /* 5 tinted shadow levels on paper */
+    --sh-1: 0 2px 0 oklch(23.5% 0.056 260 / 0.12);
+    --sh-2: 0 4px 10px -2px oklch(23.5% 0.056 260 / 0.12), 0 2px 0 oklch(23.5% 0.056 260 / 0.14);
+    --sh-3: 0 12px 24px -8px oklch(23.5% 0.056 260 / 0.16), 0 3px 0 oklch(23.5% 0.056 260 / 0.15);
+    --sh-4: 0 20px 38px -12px oklch(23.5% 0.056 260 / 0.2), 0 4px 0 oklch(23.5% 0.056 260 / 0.16);
+    --sh-5: 0 28px 56px -14px oklch(23.5% 0.056 260 / 0.25);
+    --sh-inset: inset 0 2px 5px oklch(23.5% 0.056 260 / 0.18);
+  }
+
+  /* Semantic tokens: BLUEPRINT ("Play") */
+  [data-surface="blueprint"] {
+    --surface: var(--c-blueprint);
+    --surface-raised: var(--c-blueprint-raised);
+    --surface-inset: var(--c-blueprint-deep);
+    --on-surface: var(--c-chalk);
+    --on-surface-muted: var(--c-chalk-muted);
+    --line: oklch(95.5% 0.018 254 / 0.24);
+    --line-strong: oklch(95.5% 0.018 254 / 0.5);
+    --accent: var(--c-saffron);
+    --accent-depth: var(--c-saffron-depth);
+    --on-accent: var(--c-ink);
+    --reward: var(--c-saffron);
+    --ok: var(--c-glaze);
+    --warn: var(--c-coral);
+
+    /* 5 tinted shadow levels on blueprint */
+    --sh-1: 0 2px 0 oklch(16% 0.06 256 / 0.45);
+    --sh-2: 0 6px 14px -4px oklch(16% 0.06 256 / 0.5), 0 2px 0 oklch(16% 0.06 256 / 0.55);
+    --sh-3: 0 14px 28px -8px oklch(14% 0.06 256 / 0.58), 0 4px 0 oklch(14% 0.06 256 / 0.6);
+    --sh-4: 0 22px 44px -10px oklch(12% 0.06 256 / 0.65), 0 4px 0 oklch(12% 0.06 256 / 0.65);
+    --sh-5: 0 32px 64px -14px oklch(10% 0.06 256 / 0.72);
+    --sh-inset: inset 0 3px 8px oklch(12% 0.06 256 / 0.68);
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--on-surface);
+    text-wrap: balance;
+  }
+
+  p, li {
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  code, pre {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  *:focus-visible {
+    outline: 3px solid var(--c-saffron);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .ws-surface {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    position: relative;
+  }
+
+  /* Warm paper surface with static 3.5% tiled SVG grain (lightweight, zero filter stalls) */
+  .ws-paper-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230F1E3A'%3E%3Crect x='7' y='11' width='1.5' height='1.5'/%3E%3Crect x='23' y='5' width='1' height='1'/%3E%3Crect x='41' y='19' width='1.5' height='1.5'/%3E%3Crect x='63' y='9' width='1' height='1'/%3E%3Crect x='83' y='17' width='1.5' height='1.5'/%3E%3Crect x='14' y='33' width='1' height='1'/%3E%3Crect x='35' y='41' width='1.5' height='1.5'/%3E%3Crect x='54' y='29' width='1' height='1'/%3E%3Crect x='75' y='39' width='1.5' height='1.5'/%3E%3Crect x='91' y='31' width='1' height='1'/%3E%3Crect x='5' y='59' width='1.5' height='1.5'/%3E%3Crect x='27' y='67' width='1' height='1'/%3E%3Crect x='47' y='55' width='1.5' height='1.5'/%3E%3Crect x='69' y='63' width='1' height='1'/%3E%3Crect x='87' y='57' width='1.5' height='1.5'/%3E%3Crect x='17' y='83' width='1' height='1'/%3E%3Crect x='39' y='89' width='1.5' height='1.5'/%3E%3Crect x='59' y='79' width='1' height='1'/%3E%3Crect x='79' y='87' width='1.5' height='1.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 96px 96px;
+  }
+
+  /* Blueprint chalk grid (24px, every 5th line = 120px denser) */
+  .ws-blueprint-grid {
+    background-color: var(--c-blueprint);
+    background-image:
+      linear-gradient(to right, oklch(95.5% 0.018 254 / 0.14) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(95.5% 0.018 254 / 0.14) 1px, transparent 1px),
+      linear-gradient(to right, oklch(95.5% 0.018 254 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(95.5% 0.018 254 / 0.06) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  }
+
+  /* Subtle 8-point girih pattern (6-8% opacity) */
+  .ws-girih-bg {
+    background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23EAF2FF' stroke-opacity='0.075' stroke-width='1'%3E%3Cpolygon points='32,6 39,25 58,32 39,39 32,58 25,39 6,32 25,25'/%3E%3Crect x='17' y='17' width='30' height='30' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 64px 64px;
+  }
+
+  /* Progressive bevel corner for blueprint panels */
+  .ws-blueprint-panel {
+    border-radius: var(--r-panel);
+    border: 2px solid var(--line-strong);
+    box-shadow: var(--sh-4);
+  }
+
+  @supports (corner-shape: bevel) {
+    .ws-blueprint-panel {
+      corner-shape: bevel;
+    }
+  }
+
+  /* Physical key button with thick bottom lip */
+  .ws-key-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 48px;
+    padding: 0.75rem 1.35rem;
+    border-radius: var(--r-card);
+    border: 2px solid var(--on-surface);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 4px 0 var(--accent-depth);
+    transform: translateY(0);
+    transition:
+      transform var(--dur-fast) var(--spring-bouncy),
+      box-shadow var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .ws-key-btn--primary {
+    background-color: var(--accent);
+    border-color: var(--accent-depth);
+    color: var(--on-accent);
+  }
+
+  .ws-key-btn--secondary {
+    background-color: var(--surface-raised);
+    border-color: var(--line-strong);
+    color: var(--on-surface);
+    box-shadow: 0 4px 0 var(--line-strong);
+  }
+
+  .ws-key-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .ws-key-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--accent-depth);
+  }
+
+  .ws-key-btn--secondary:active {
+    box-shadow: 0 1px 0 var(--line-strong);
+  }
+
+  .ws-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ws-hero-title {
+    font-size: var(--text-hero);
+  }
+
+  .ws-h2 {
+    font-size: var(--text-h2);
+  }
+
+  .ws-body {
+    font-size: var(--text-body);
+  }
+
+  .ws-micro {
+    font-size: var(--text-micro);
+  }
+}
+
+/* ==========================================================================
+   View Transitions (Paper <-> Blueprint clip-path iris from click origin)
+   ========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-in-out);
+}
+
+::view-transition-new(root) {
+  animation-name: ws-iris-in;
+}
+
+@keyframes ws-iris-in {
+  from {
+    clip-path: circle(0% at var(--vt-x, 50vw) var(--vt-y, 50vh));
+  }
+  to {
+    clip-path: circle(150% at var(--vt-x, 50vw) var(--vt-y, 50vh));
+  }
+}
+
+.ws-mirzo-shared {
+  view-transition-name: mirzo-stage;
+}
+
+/* ==========================================================================
+   Reduced Motion & WCAG 2.2.2 Pause + Lite Mode
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+    transition-property: opacity, background-color, color, border-color !important;
+  }
+}
+
+html[data-motion-paused="true"] *,
+html[data-motion-paused="true"] *::before,
+html[data-motion-paused="true"] *::after {
+  animation-play-state: paused !important;
+  transition-duration: 150ms !important;
+}
+
+html[data-lite="true"] .ws-paper-grain::before {
+  display: none;
+}
+
+@keyframes ws-soft-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.ws-soft-nudge {
+  animation: ws-soft-nudge 280ms var(--ease-out) 1;
+}

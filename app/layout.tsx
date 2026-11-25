@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
+import '@fontsource-variable/geologica/wght.css';
+import '@fontsource-variable/golos-text/wght.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/600.css';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Oʻyna va oʻrgan — Algoritm Ustaxonasi',
-  description: 'Oʻzbek tilidagi interaktiv dasturlash va algoritmik fikrlash oʻyin-platformasi.',
+  description:
+    '5–6-sinf oʻquvchilari uchun oʻzbek tilidagi interaktiv dasturlash va algoritmik fikrlash ustaxonasi.',
 };
 
 export default function RootLayout({
@@ -11,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="uz">
-      <body>{children}</body>
+    <html lang="uz" data-surface="paper">
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

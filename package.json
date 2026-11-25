@@ -10,11 +10,18 @@
     "clean": "next clean"
   },
   "dependencies": {
+    "@fontsource-variable/geologica": "^5.3.0",
+    "@fontsource-variable/golos-text": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@google/genai": "^2.4.0",
     "@hookform/resolvers": "^5.2.1",
+    "@phosphor-icons/react": "^2.1.10",
+    "@types/canvas-confetti": "^1.9.0",
     "autoprefixer": "^10.4.21",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "gsap": "^3.15.1",
     "lucide-react": "^0.553.0",
     "motion": "^12.23.24",
     "next": "^15.4.9",

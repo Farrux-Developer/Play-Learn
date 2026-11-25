@@ -1,6 +1,6 @@
 {
   "name": "Oʻyna va oʻrgan — Algoritm Ustaxonasi",
-  "description": "Oʻzbek tilidagi interaktiv dasturlash va algoritmik fikrlash oʻyin-platformasi.",
+  "description": "5–6-sinf oʻquvchilari uchun oʻzbek tilidagi dasturlash va algoritmik fikrlash ustaxonasi.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
