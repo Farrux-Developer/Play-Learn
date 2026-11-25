@@ -1,8 +1,9 @@
 /**
- * Hero section ("paper" surface left, "blueprint" Workshop HUD right)
- * with single-run <= 1.2s GSAP choreography (lazy-loaded after document.fonts.ready),
- * 3-step sequence marker, physical key buttons, promise chips with icons,
- * and mobile sticky CTA bar when hero scrolls out of viewport.
+ * Hero section ("paper" left, "blueprint" Workshop HUD right):
+ * - Anti-slop cleanup: removed decorative green dot & excessive boxed pill clutter
+ * - Fluid Onest headline with 1-2-3 sequential typographic cadence
+ * - A01 GSAP master-timeline (<= 1.2s, SplitText lines, HUD clip-path unfold, primary CTA last)
+ * - A03 hover CTA gaze nudge toward Boshlash
  */
 'use client';
 
@@ -18,6 +19,7 @@ import { WorkshopHud } from '@/components/WorkshopHud';
 import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
 import type { MirzoController, MirzoMood } from '@/lib/engine/mirzo';
 import type { WorkshopId } from '@/lib/engine/store';
+import type { QualityTier } from '@/lib/motion/core';
 
 interface HeroSectionProps {
   level: number;
@@ -26,7 +28,7 @@ interface HeroSectionProps {
   streak: number;
   soundEnabled: boolean;
   subtitlesEnabled: boolean;
-  liteMode: boolean;
+  tier: QualityTier;
   motionPaused: boolean;
   unlockedWorkshops: WorkshopId[];
   machineTick: number;
@@ -34,6 +36,7 @@ interface HeroSectionProps {
   speechText: string;
   nudgeError: boolean;
   lookOffset: { x: number; y: number };
+  idleNudgeCta: boolean;
   mirzoRef: React.RefObject<MirzoController | null>;
   onStart: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDiagnostic: () => void;
@@ -52,6 +55,7 @@ export function HeroSection(props: HeroSectionProps) {
   const hudWrapRef = useRef<HTMLDivElement | null>(null);
 
   const { onHeroVisibleChange } = props;
+  const liteMode = props.tier === 'lite';
 
   useEffect(() => {
     const el = heroRef.current;
@@ -64,9 +68,9 @@ export function HeroSection(props: HeroSectionProps) {
     return () => obs.disconnect();
   }, [onHeroVisibleChange]);
 
-  // Single-run hero entrance choreography (<= 1.2s, waits for fonts, skips repeat visits)
+  // A01 Master-timeline (<= 1.2s; waits for document.fonts.ready; fast repeat visit)
   useEffect(() => {
-    if (props.liteMode || props.motionPaused) return;
+    if (liteMode || props.motionPaused) return;
     const reduced =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     if (reduced) return;
@@ -78,9 +82,10 @@ export function HeroSection(props: HeroSectionProps) {
     } catch {
       played = false;
     }
-    if (played) return;
 
     let cancelled = false;
+    let ctx: { revert: () => void } | null = null;
+
     const run = async () => {
       if (document.fonts?.ready) await document.fonts.ready;
       if (cancelled) return;
@@ -91,28 +96,74 @@ export function HeroSection(props: HeroSectionProps) {
       if (cancelled) return;
       gsap.registerPlugin(SplitText);
 
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      if (headlineRef.current) {
-        const split = new SplitText(headlineRef.current, { type: 'lines', mask: 'lines' });
-        tl.from(split.lines, { yPercent: 100, duration: 0.65, stagger: 0.07 }, 0.1);
-      }
-      if (subBlockRef.current) {
-        tl.from(subBlockRef.current, { opacity: 0, y: 8, duration: 0.5 }, 0.3);
-      }
-      if (hudWrapRef.current) {
-        tl.from(hudWrapRef.current, { opacity: 0, scale: 0.97, duration: 0.65 }, 0.35);
-      }
-      if (actionsRef.current) {
-        const btns = Array.from(actionsRef.current.children);
-        tl.from(btns.reverse(), { opacity: 0, y: 10, duration: 0.4, stagger: 0.09 }, 0.7);
-      }
+      ctx = gsap.context(() => {
+        if (played) {
+          // Repeat visit <= 360ms without SplitText
+          gsap.from([headlineRef.current, subBlockRef.current, hudWrapRef.current], {
+            opacity: 0,
+            y: 8,
+            duration: 0.32,
+            stagger: 0.04,
+            ease: 'power2.out',
+          });
+          return;
+        }
+
+        const tl = gsap.timeline();
+        if (headlineRef.current) {
+          const split = new SplitText(headlineRef.current, { type: 'lines', mask: 'lines' });
+          tl.from(
+            split.lines,
+            {
+              yPercent: 105,
+              rotate: 2,
+              duration: 0.64,
+              stagger: 0.07,
+              ease: 'expo.out',
+            },
+            0.12
+          );
+        }
+        if (subBlockRef.current) {
+          tl.from(
+            subBlockRef.current,
+            { opacity: 0, y: 10, duration: 0.5, ease: 'power3.out' },
+            0.28
+          );
+        }
+        if (hudWrapRef.current) {
+          tl.fromTo(
+            hudWrapRef.current,
+            { clipPath: 'inset(0 0 100% 0)', opacity: 0.6 },
+            { clipPath: 'inset(0 0 0% 0)', opacity: 1, duration: 0.44, ease: 'power3.out' },
+            0.42
+          );
+        }
+        if (actionsRef.current) {
+          const btns = Array.from(actionsRef.current.children);
+          // Secondary first, primary CTA last with vertical squash pop
+          tl.from(
+            btns.reverse(),
+            {
+              opacity: 0,
+              scaleY: 0.88,
+              y: 8,
+              duration: 0.36,
+              stagger: 0.1,
+              ease: 'back.out(1.6)',
+            },
+            0.7
+          );
+        }
+      }, heroRef);
     };
 
     void run();
     return () => {
       cancelled = true;
+      ctx?.revert();
     };
-  }, [props.liteMode, props.motionPaused]);
+  }, [liteMode, props.motionPaused]);
 
   const t = WORKSHOP_STRINGS.hero;
   const promiseIcons = [PhCheck, PhWorkshop, PhLightning];
@@ -123,56 +174,58 @@ export function HeroSection(props: HeroSectionProps) {
       id="top"
       className="relative mx-auto max-w-6xl px-4 pt-6 pb-10 sm:px-6 sm:pt-10 sm:pb-14"
     >
-      <div className="grid items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
-        {/* Left column: Paper reading & typography */}
+      <div className="grid items-center gap-8 lg:grid-cols-[1.03fr_0.97fr] lg:gap-10">
+        {/* Left column: Paper archival reading & crisp typography */}
         <div className="space-y-5">
-          {/* Audience sticker tag */}
-          <div className="inline-flex items-center gap-2 rounded-[8px] border-2 border-[var(--line-strong)] bg-[var(--surface-raised)] px-3.5 py-1.5 text-[14px] font-bold shadow-[var(--sh-1)]">
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--ok)]" aria-hidden="true" />
-            <span>{t.audienceTag}</span>
-          </div>
+          {/* Clean workshop label sticker (no decorative colored status dots) */}
+          <p className="inline-block rounded-[8px] border-2 border-[var(--line-strong)] bg-[var(--surface-raised)] px-3.5 py-1 text-[14px] font-bold text-[var(--on-surface)] shadow-[var(--sh-1)]">
+            {t.audienceTag}
+          </p>
 
-          {/* Fluid Hero Headline + 3-step sequence marker */}
+          {/* Fluid Hero Headline + uncluttered typographic 1-2-3 cadence */}
           <div>
             <h1
               ref={headlineRef}
-              className="ws-hero-title font-extrabold leading-[1.03] tracking-[-0.025em]"
+              className="ws-hero-title font-extrabold leading-[0.98] tracking-[-0.025em]"
             >
               {t.headline}
             </h1>
-            <div
+            <p
               aria-hidden="true"
-              className="mt-3 flex flex-wrap items-center gap-2 text-[14px] font-bold text-[var(--on-surface-muted)]"
+              className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14.5px] font-bold text-[var(--accent)]"
             >
-              <span className="rounded-[8px] border border-[var(--line-strong)] bg-[var(--surface-raised)] px-2.5 py-0.5">
-                1. Tushun
+              <span>
+                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">1.</span>
+                Tushun
               </span>
-              <span className="h-[2px] w-4 bg-[var(--line-strong)]" />
-              <span className="rounded-[8px] border border-[var(--line-strong)] bg-[var(--surface-raised)] px-2.5 py-0.5">
-                2. Oʻyna
+              <span className="h-[2px] w-3 bg-[var(--line-strong)]" />
+              <span>
+                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">2.</span>
+                Oʻyna
               </span>
-              <span className="h-[2px] w-4 bg-[var(--line-strong)]" />
-              <span className="rounded-[8px] border border-[var(--line-strong)] bg-[var(--surface-raised)] px-2.5 py-0.5">
-                3. Boshqar
+              <span className="h-[2px] w-3 bg-[var(--line-strong)]" />
+              <span>
+                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">3.</span>
+                Boshqar
               </span>
-            </div>
+            </p>
           </div>
 
-          {/* Subtitle + Promise chips */}
+          {/* Subtitle + Physical Keys + Clean Promises Strip */}
           <div ref={subBlockRef} className="space-y-5">
-            <p className="ws-body text-[var(--on-surface-muted)]">
-              {t.subtitle}
-            </p>
+            <p className="ws-body text-[var(--on-surface-muted)]">{t.subtitle}</p>
 
             {/* Primary & Secondary physical keys (full-width >= 52px on mobile) */}
             <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
                 type="button"
                 onClick={props.onStart}
+                onMouseEnter={() => props.mirzoRef.current?.lookAt(-0.85, 0.55)}
+                onFocus={() => props.mirzoRef.current?.lookAt(-0.85, 0.55)}
                 className="ws-key-btn ws-key-btn--primary min-h-[54px] w-full px-6 text-[17px] sm:w-auto"
               >
                 <span>{t.primaryCta}</span>
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--on-accent)]/18">
+                <span className="ws-key-icon inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--on-accent)]/18">
                   <PhPlay size={14} weight="fill" />
                 </span>
               </button>
@@ -180,23 +233,22 @@ export function HeroSection(props: HeroSectionProps) {
               <button
                 type="button"
                 onClick={props.onDiagnostic}
+                onMouseEnter={() => props.mirzoRef.current?.lookAt(-0.55, 0.65)}
+                onFocus={() => props.mirzoRef.current?.lookAt(-0.55, 0.65)}
                 className="ws-key-btn ws-key-btn--secondary min-h-[54px] w-full px-5 text-[16px] sm:w-auto"
               >
-                <PhChecklist size={20} weight="bold" />
+                <PhChecklist size={20} weight="bold" className="ws-key-icon" />
                 <span>{t.secondaryCta}</span>
               </button>
             </div>
 
-            {/* 3 Product Promise Chips with own icons (no dot separators) */}
-            <ul className="flex flex-wrap gap-2.5 pt-1">
+            {/* 3 Product Promises with icons (clean typographic row, no extra boxed pill noise) */}
+            <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--line)] pt-3.5 text-[14.5px] font-semibold text-[var(--on-surface)]">
               {t.promises.map((item, idx) => {
                 const Icon = promiseIcons[idx] || PhCheck;
                 return (
-                  <li
-                    key={item.id}
-                    className="inline-flex items-center gap-2 rounded-[10px] border border-[var(--line-strong)] bg-[var(--surface-raised)] px-3 py-1.5 text-[14px] font-semibold text-[var(--on-surface)] shadow-[var(--sh-1)]"
-                  >
-                    <Icon size={16} weight="bold" className="text-[var(--accent)]" />
+                  <li key={item.id} className="inline-flex items-center gap-2">
+                    <Icon size={17} weight="bold" className="shrink-0 text-[var(--ok-ink)]" />
                     <span>{item.label}</span>
                   </li>
                 );
@@ -214,7 +266,7 @@ export function HeroSection(props: HeroSectionProps) {
             streak={props.streak}
             soundEnabled={props.soundEnabled}
             subtitlesEnabled={props.subtitlesEnabled}
-            liteMode={props.liteMode}
+            tier={props.tier}
             motionPaused={props.motionPaused}
             unlockedWorkshops={props.unlockedWorkshops}
             machineTick={props.machineTick}
@@ -222,6 +274,7 @@ export function HeroSection(props: HeroSectionProps) {
             speechText={props.speechText}
             nudgeError={props.nudgeError}
             lookOffset={props.lookOffset}
+            idleNudgeCta={props.idleNudgeCta}
             mirzoRef={props.mirzoRef}
             onToggleSound={props.onToggleSound}
             onToggleSubtitles={props.onToggleSubtitles}

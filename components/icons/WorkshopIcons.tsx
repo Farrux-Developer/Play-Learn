@@ -1,11 +1,12 @@
 /**
- * Phosphor utility icons (bold/duotone) paired with 8 bespoke brand workshop SVGs:
- * EmberIcon, PinStarIcon, GearIcon, FlaskIcon, ToggleLedIcon,
+ * Phosphor utility icons (bold/duotone) paired with bespoke brand workshop SVGs:
+ * EmberIcon (with MorphSVG ember->flame support), PinStarIcon, GearIcon,
+ * GearLoader (A20 interlocked gears), FlaskIcon, ToggleLedIcon,
  * WorkshopTokenIcon, DuppiChevronIcon, MechLockIcon.
  */
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Play,
   BookOpenText,
@@ -20,6 +21,8 @@ import {
   Lightning,
   ListChecks,
   Cpu,
+  List,
+  X,
 } from '@phosphor-icons/react';
 
 export {
@@ -36,6 +39,8 @@ export {
   Lightning as PhLightning,
   ListChecks as PhChecklist,
   Cpu as PhMachine,
+  List as PhMenu,
+  X as PhClose,
 };
 
 interface SvgProps {
@@ -43,12 +48,59 @@ interface SvgProps {
   size?: number;
 }
 
-/** 1. Seriya ember icon: glows softly at 0, ignites on streak >= 1 */
+const EMBER_PATH =
+  'M12 10.5C14.2 10.5 16.5 12.6 16.5 15.2C16.5 18.1 14.5 20.4 12 20.4C9.5 20.4 7.5 18.1 7.5 15.2C7.5 12.6 9.8 10.5 12 10.5Z';
+const FLAME_PATH =
+  'M12.6 2.5C13.2 6.1 10.2 7.8 9.2 10.7C8.4 13.1 9.6 15.8 12 16.5C14.7 17.2 16.8 14.9 16.5 12.1C16.3 10.3 15.3 9.1 15.1 7.4C17.8 9.1 19.5 11.9 19.2 15.1C18.8 19.1 15.4 21.8 11.6 21.5C7.6 21.2 4.8 17.9 5 13.9C5.2 9.4 8.7 5.7 12.6 2.5Z';
+
+/** 1. A08 Seriya ember icon: smolders at 0, MorphSVG ignites into flame at streak >= 1 */
 export function EmberIcon({
   size = 20,
   active = false,
   className = '',
 }: SvgProps & { active?: boolean }) {
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const prevActiveRef = useRef(active);
+
+  useEffect(() => {
+    const el = pathRef.current;
+    if (!el || prevActiveRef.current === active) {
+      prevActiveRef.current = active;
+      return;
+    }
+    prevActiveRef.current = active;
+
+    const reduced =
+      typeof window !== 'undefined' &&
+      (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+    if (reduced) {
+      el.setAttribute('d', active ? FLAME_PATH : EMBER_PATH);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [{ default: gsap }, { MorphSVGPlugin }] = await Promise.all([
+          import('gsap'),
+          import('gsap/MorphSVGPlugin'),
+        ]);
+        if (cancelled) return;
+        gsap.registerPlugin(MorphSVGPlugin);
+        gsap.to(el, {
+          morphSVG: active ? FLAME_PATH : EMBER_PATH,
+          duration: active ? 0.42 : 0.6,
+          ease: 'power2.inOut',
+        });
+      } catch {
+        if (!cancelled) el.setAttribute('d', active ? FLAME_PATH : EMBER_PATH);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [active]);
+
   return (
     <svg
       width={size}
@@ -59,25 +111,26 @@ export function EmberIcon({
       className={className}
     >
       <path
-        d="M12.6 2.5C13.2 6.1 10.2 7.8 9.2 10.7C8.4 13.1 9.6 15.8 12 16.5C14.7 17.2 16.8 14.9 16.5 12.1C16.3 10.3 15.3 9.1 15.1 7.4C17.8 9.1 19.5 11.9 19.2 15.1C18.8 19.1 15.4 21.8 11.6 21.5C7.6 21.2 4.8 17.9 5 13.9C5.2 9.4 8.7 5.7 12.6 2.5Z"
-        fill={active ? '#E4572E' : 'currentColor'}
-        fillOpacity={active ? 1 : 0.45}
+        ref={pathRef}
+        d={active ? FLAME_PATH : EMBER_PATH}
+        fill={active ? '#E4572E' : '#F5A800'}
+        fillOpacity={active ? 1 : 0.72}
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
       <circle
         cx="12"
-        cy="15.2"
+        cy="15.4"
         r="2.4"
-        fill={active ? '#F5A800' : 'currentColor'}
-        fillOpacity={active ? 0.95 : 0.35}
+        fill={active ? '#F5A800' : '#E4572E'}
+        fillOpacity={active ? 0.95 : 0.8}
       />
     </svg>
   );
 }
 
-/** 2. Enamel 8-point girih level pin (matching orange star pin on Mirzo's jacket) */
+/** 2. Enamel 8-point girih level pin */
 export function PinStarIcon({ size = 32, className = '' }: SvgProps) {
   return (
     <svg
@@ -100,7 +153,7 @@ export function PinStarIcon({ size = 32, className = '' }: SvgProps) {
   );
 }
 
-/** 3. Mechanical workshop gear for Tamoyillar */
+/** 3. Mechanical workshop gear */
 export function GearIcon({ size = 28, className = '' }: SvgProps) {
   return (
     <svg
@@ -121,6 +174,23 @@ export function GearIcon({ size = 28, className = '' }: SvgProps) {
       />
       <circle cx="16" cy="16.3" r="4.5" stroke="currentColor" strokeWidth="1.8" />
     </svg>
+  );
+}
+
+/** A20: Interlocked rotating gear loader (CSS linear infinite) */
+export function GearLoader({ label }: { label?: string }) {
+  return (
+    <div className="inline-flex items-center gap-2.5 text-[14px] font-semibold text-[var(--on-surface-muted)]">
+      <span className="inline-flex items-center" aria-hidden="true">
+        <span className="ws-gear-spin inline-block text-[var(--accent)]">
+          <GearIcon size={24} />
+        </span>
+        <span className="ws-gear-spin--reverse -ml-1.5 mt-2 inline-block text-[var(--ok)]">
+          <GearIcon size={18} />
+        </span>
+      </span>
+      {label ? <span>{label}</span> : null}
+    </div>
   );
 }
 
@@ -238,7 +308,7 @@ export function DuppiChevronIcon({ size = 18, className = '' }: SvgProps) {
   );
 }
 
-/** 8. Mechanical lock with rotating shackle state */
+/** 8. A14 Mechanical lock with lifting shackle state */
 export function MechLockIcon({
   size = 20,
   unlocked = false,
@@ -254,14 +324,15 @@ export function MechLockIcon({
       className={className}
     >
       <path
-        d={
-          unlocked
-            ? 'M8 11V7.5C8 5.3 9.8 3.5 12 3.5C13.9 3.5 15.5 4.8 15.9 6.5'
-            : 'M8 11V7.5C8 5.3 9.8 3.5 12 3.5C14.2 3.5 16 5.3 16 7.5V11'
-        }
+        d="M8 11V7.5C8 5.3 9.8 3.5 12 3.5C14.2 3.5 16 5.3 16 7.5V11"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
+        style={{
+          transform: unlocked ? 'translateY(-3.5px) rotate(-14deg)' : 'translateY(0)',
+          transformOrigin: '8px 11px',
+          transition: 'transform 260ms var(--spring-pop)',
+        }}
       />
       <rect
         x="5"

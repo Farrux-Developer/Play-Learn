@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import '@fontsource-variable/geologica/wght.css';
-import '@fontsource-variable/golos-text/wght.css';
+import '@fontsource-variable/onest/wght.css';
+import '@fontsource-variable/lexend/wght.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
 import './globals.css';
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="uz" data-surface="paper">
+    <html lang="uz" data-surface="paper" data-tier="mid">
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

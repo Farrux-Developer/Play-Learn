@@ -39,7 +39,7 @@ export const WORKSHOP_STRINGS = {
     workshopsLabel: 'Uchta ustaxona',
     defaultSay: 'Salom! Birinchi qadamni bosib koʻramizmi?',
   },
-  /* New accessibility / mode / interactive section strings flagged for native Uzbek review */
+  /* New accessibility / mode / interactive strings flagged for native Uzbek review */
   reviewStrings: {
     surfacePaper: 'Tushunish varagʻi',
     surfaceBlueprint: 'Oʻyin chizmasi',
@@ -80,15 +80,17 @@ export const WORKSHOP_STRINGS = {
     diagDoneTitle: 'Sinov yakunlandi!',
     diagGoWorkshop: 'Tavsiya etilgan ustaxonaga oʻtish',
     closeModal: 'Yopish',
+    openMenu: 'Menyuni ochish',
+    closeMenu: 'Menyuni yopish',
+    loadingText: 'Ustaxona tayyorlanmoqda...',
+    emptyTasksText: 'Bu boʻlimda hali vazifalar yoʻq — darsdan boshlaymizmi?',
+    errorMachineText: 'Mashina biroz toʻxtab qoldi — qayta urinib koʻramiz.',
     resetProgress: 'Natijani nolga tushirish',
     resetConfirm: 'Ha, qaytadan boshlash',
     resetCancel: 'Bekor qilish',
   },
 } as const;
 
-/**
- * Normalizes apostrophe variants (U+02BB, U+02BC, U+2018, U+2019, ') for user input checks.
- */
 export function normalizeUzbekInput(raw: string): string {
   return raw
     .trim()

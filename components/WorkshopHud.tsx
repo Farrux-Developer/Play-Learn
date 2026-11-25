@@ -1,14 +1,19 @@
 /**
- * Blueprint "Workshop HUD" right column:
- * - Hierarchy: Mirzo arched niche (~60%) -> Level pin + XP flask + Ember streak -> Machine & Toggles
- * - Speech bubble sticker with 28ms/char typing (click skips, aria-live reads immediately)
- * - Live miniature "Mirzo mashinasi" step button + 3 workshop tokens
- * - Tactile LED switches for Ovoz & Subtitrlar
+ * Blueprint "Workshop HUD" (right column):
+ * - Rough.js build-time chalk border drawn by GSAP DrawSVG (A01/A15)
+ * - 3D clearcoat or SVG 24/36/18 GearTrain behind Mirzo (A05)
+ * - 8-point girih level pin with 360° Y-flip, shockwave ring & 1.5px jolt on level:up (A07)
+ * - Graduated XP flask with MotionPath sparks & MorphSVG meniscus (A06)
+ * - MorphSVG Seriya ember <-> flame with rising sparks (A08)
+ * - Base UI Switch primitives with LED & spring thumb (A09)
+ * - Desktop fine-pointer panel tilt <= 5 deg on tier: high (A10)
  */
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Switch } from '@base-ui/react/switch';
 import { motion } from 'motion/react';
+import { GearTrain } from '@/components/GearTrain';
 import {
   EmberIcon,
   MechLockIcon,
@@ -26,6 +31,8 @@ import { MACHINE_TICKS, WORKSHOPS } from '@/lib/data/workshop';
 import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
 import type { MirzoController, MirzoMood } from '@/lib/engine/mirzo';
 import type { WorkshopId } from '@/lib/engine/store';
+import { motionCore, type QualityTier } from '@/lib/motion/core';
+import { ROUGH_PATHS } from '@/lib/motion/roughPaths';
 
 interface WorkshopHudProps {
   level: number;
@@ -34,7 +41,7 @@ interface WorkshopHudProps {
   streak: number;
   soundEnabled: boolean;
   subtitlesEnabled: boolean;
-  liteMode: boolean;
+  tier: QualityTier;
   motionPaused: boolean;
   unlockedWorkshops: WorkshopId[];
   machineTick: number;
@@ -42,6 +49,7 @@ interface WorkshopHudProps {
   speechText: string;
   nudgeError?: boolean;
   lookOffset: { x: number; y: number };
+  idleNudgeCta?: boolean;
   mirzoRef: React.RefObject<MirzoController | null>;
   onToggleSound: () => void;
   onToggleSubtitles: () => void;
@@ -56,7 +64,7 @@ export function WorkshopHud({
   streak,
   soundEnabled,
   subtitlesEnabled,
-  liteMode,
+  tier,
   motionPaused,
   unlockedWorkshops,
   machineTick,
@@ -64,28 +72,120 @@ export function WorkshopHud({
   speechText,
   nudgeError = false,
   lookOffset,
+  idleNudgeCta = false,
   mirzoRef,
   onToggleSound,
   onToggleSubtitles,
   onStepMachine,
   onOpenWorkshop,
 }: WorkshopHudProps) {
-  const [typedLen, setTypedLen] = useState(speechText.length);
-  const [pinRing, setPinRing] = useState(false);
-  const [girihTurn, setGirihTurn] = useState(0);
+  const hudPanelRef = useRef<HTMLDivElement | null>(null);
+  const chalkFrameRef = useRef<SVGPathElement | null>(null);
+  const pinFlipRef = useRef<HTMLSpanElement | null>(null);
+  const shockwaveRef = useRef<HTMLSpanElement | null>(null);
   const prevLevelRef = useRef(level);
 
+  const [typedLen, setTypedLen] = useState(speechText.length);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+  const [ledSoundLit, setLedSoundLit] = useState(soundEnabled);
+  const [ledSubLit, setLedSubLit] = useState(subtitlesEnabled);
+
+  const liteMode = tier === 'lite';
+
+  // A09 Delayed LED ignition (120ms after toggle)
   useEffect(() => {
-    if (level > prevLevelRef.current) {
-      setPinRing(true);
-      setGirihTurn((t) => t + 45);
-      const id = window.setTimeout(() => setPinRing(false), 500);
+    const id = window.setTimeout(() => setLedSoundLit(soundEnabled), motionPaused ? 0 : 120);
+    return () => clearTimeout(id);
+  }, [soundEnabled, motionPaused]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setLedSubLit(subtitlesEnabled), motionPaused ? 0 : 120);
+    return () => clearTimeout(id);
+  }, [subtitlesEnabled, motionPaused]);
+
+  // A01 / A15 DrawSVG chalk border trace on mount & mode switches
+  useEffect(() => {
+    const pathEl = chalkFrameRef.current;
+    if (!pathEl || liteMode || motionPaused) return;
+    const reduced =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (reduced) return;
+
+    const runDraw = async () => {
+      try {
+        const [{ default: gsap }, { DrawSVGPlugin }] = await Promise.all([
+          import('gsap'),
+          import('gsap/DrawSVGPlugin'),
+        ]);
+        gsap.registerPlugin(DrawSVGPlugin);
+        gsap.fromTo(
+          pathEl,
+          { drawSVG: '0%' },
+          { drawSVG: '100%', duration: 0.7, ease: 'power3.inOut' }
+        );
+      } catch {
+        // Path stays visible cleanly
+      }
+    };
+
+    void runDraw();
+    const offMode = motionCore.on('ui:mode', () => {
+      void runDraw();
+    });
+    return () => offMode();
+  }, [liteMode, motionPaused]);
+
+  // A07 Level-up pin 360° Y-spin + shockwave ring + 1.5px jolt + 45° girih turn
+  useEffect(() => {
+    if (level <= prevLevelRef.current) {
       prevLevelRef.current = level;
-      return () => clearTimeout(id);
+      return;
     }
     prevLevelRef.current = level;
-  }, [level]);
+    if (liteMode || motionPaused) return;
+    const reduced =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (reduced) return;
 
+    void (async () => {
+      try {
+        const { default: gsap } = await import('gsap');
+        if (hudPanelRef.current) {
+          gsap.fromTo(
+            hudPanelRef.current,
+            { x: -1.5, y: 1.5 },
+            { x: 0, y: 0, duration: 0.16, ease: 'power2.out', clearProps: 'x,y' }
+          );
+        }
+        if (pinFlipRef.current) {
+          gsap.fromTo(
+            pinFlipRef.current,
+            { rotateY: 0, scale: 1 },
+            {
+              rotateY: 360,
+              scale: 1.35,
+              duration: 0.45,
+              ease: 'back.out(1.7)',
+              onComplete: () => {
+                gsap.to(pinFlipRef.current, { scale: 1, duration: 0.25, ease: 'power2.out' });
+              },
+            }
+          );
+        }
+        if (shockwaveRef.current) {
+          gsap.fromTo(
+            shockwaveRef.current,
+            { scale: 0.6, opacity: 0.65 },
+            { scale: 2.2, opacity: 0, duration: 0.6, ease: 'power2.out' }
+          );
+        }
+      } catch {
+        // Static pin state remains visible
+      }
+    })();
+  }, [level, liteMode, motionPaused]);
+
+  // A04 Speech typing (28ms/char + 120ms punctuation pause)
   useEffect(() => {
     if (liteMode || motionPaused || !subtitlesEnabled) {
       queueMicrotask(() => setTypedLen(speechText.length));
@@ -93,15 +193,41 @@ export function WorkshopHud({
     }
     queueMicrotask(() => setTypedLen(0));
     let idx = 0;
-    const id = window.setInterval(() => {
+    let timer = 0;
+    let cancelled = false;
+
+    const step = () => {
+      if (cancelled) return;
       idx += 1;
       setTypedLen(idx);
-      if (idx >= speechText.length) {
-        clearInterval(id);
-      }
-    }, 28);
-    return () => clearInterval(id);
+      if (idx >= speechText.length) return;
+      const ch = speechText[idx - 1];
+      const delay = ch === '.' || ch === '!' || ch === '?' || ch === ',' ? 120 : 28;
+      timer = window.setTimeout(step, delay);
+    };
+    timer = window.setTimeout(step, 28);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [speechText, liteMode, motionPaused, subtitlesEnabled]);
+
+  // A10 Desktop HUD tilt <= 5 deg (high tier + fine pointer only)
+  const handleHudPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (tier !== 'high' || motionPaused || e.pointerType === 'touch') return;
+    const rect = hudPanelRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const nx = ((e.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+    const ny = ((e.clientY - rect.top) / Math.max(1, rect.height)) * 2 - 1;
+    setTilt({
+      rx: Math.max(-4.5, Math.min(4.5, -ny * 4.5)),
+      ry: Math.max(-4.5, Math.min(4.5, nx * 4.5)),
+    });
+  };
+
+  const handleHudPointerLeave = () => {
+    setTilt({ rx: 0, ry: 0 });
+  };
 
   const isTyping = typedLen < speechText.length && subtitlesEnabled;
   const currentTick = MACHINE_TICKS[machineTick % MACHINE_TICKS.length];
@@ -109,23 +235,61 @@ export function WorkshopHud({
 
   return (
     <div
+      ref={hudPanelRef}
       data-surface="blueprint"
+      onPointerMove={handleHudPointerMove}
+      onPointerLeave={handleHudPointerLeave}
       className={`ws-surface ws-blueprint-grid ws-girih-bg ws-blueprint-panel relative p-4 sm:p-5 ${
         nudgeError ? 'ws-soft-nudge' : ''
       }`}
+      style={{
+        backgroundColor: '#0B3566',
+        transform:
+          tier === 'high' && !motionPaused && (tilt.rx !== 0 || tilt.ry !== 0)
+            ? `perspective(900px) rotateX(${tilt.rx.toFixed(2)}deg) rotateY(${tilt.ry.toFixed(2)}deg)`
+            : undefined,
+        transition:
+          tilt.rx === 0 && tilt.ry === 0
+            ? 'transform 570ms var(--spring-soft)'
+            : 'transform 90ms linear',
+      }}
     >
+      {/* Rough.js hand-drawn chalk frame overlay (A01/A15 DrawSVG) */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 480 620"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 z-20 h-full w-full"
+      >
+        <path
+          ref={chalkFrameRef}
+          d={ROUGH_PATHS.hudFrame}
+          fill="none"
+          stroke="#EAF2FF"
+          strokeOpacity="0.45"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+
       {/* Top strip: Level pin + XP flask + Ember streak */}
-      <div className="mb-3 space-y-3">
+      <div className="relative z-10 mb-3 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex items-center gap-2.5 rounded-[10px] border border-[var(--line-strong)] bg-[var(--surface-inset)] px-3 py-1.5">
-            <span
-              className={`relative inline-flex h-8 w-8 items-center justify-center transition-transform duration-300 ${
-                pinRing ? 'scale-[1.18]' : 'scale-100'
-              }`}
-            >
-              <PinStarIcon size={32} />
-              <span className="ws-tabular absolute inset-0 flex items-center justify-center text-[13px] font-extrabold leading-none text-[#0F1E3A]">
-                {level}
+            <span className="relative inline-flex h-8 w-8 items-center justify-center">
+              <span
+                ref={shockwaveRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-full border-2 border-[#F5A800] opacity-0"
+              />
+              <span
+                ref={pinFlipRef}
+                className="relative inline-flex h-8 w-8 items-center justify-center"
+              >
+                <PinStarIcon size={32} />
+                <span className="ws-tabular absolute inset-0 flex items-center justify-center text-[13px] font-extrabold leading-none text-[#0F1E3A]">
+                  {level}
+                </span>
               </span>
             </span>
             <span className="font-[family-name:var(--font-display)] text-[15px] font-bold">
@@ -134,13 +298,17 @@ export function WorkshopHud({
           </div>
 
           <div
-            className={`inline-flex items-center gap-2 rounded-[10px] border px-3 py-1.5 text-[15px] font-bold transition-transform duration-300 ${
+            className={`inline-flex items-center gap-2 rounded-[10px] border px-3 py-1.5 text-[15px] font-bold transition-colors duration-300 ${
               streak > 0
-                ? 'border-[#E4572E] bg-[#E4572E]/20 text-[#FFFDF7]'
+                ? 'border-[#E4572E] bg-[#E4572E]/22 text-[#FFFDF7]'
                 : 'border-[var(--line)] bg-[var(--surface-inset)] text-[var(--on-surface-muted)]'
             }`}
           >
-            <EmberIcon active={streak > 0} size={20} />
+            <EmberIcon
+              active={streak > 0}
+              size={20}
+              className={streak === 0 && !liteMode && !motionPaused ? 'animate-pulse' : ''}
+            />
             <span className="ws-tabular">
               {streak} {t.hud.streakUnit}
             </span>
@@ -155,35 +323,19 @@ export function WorkshopHud({
         />
       </div>
 
-      {/* Center (~60%): Arched Mirzo niche with 3 parallax depth layers & girih medallion */}
-      <div className="relative flex flex-col items-center overflow-hidden rounded-t-[96px] rounded-b-[20px] border-2 border-[var(--line-strong)] bg-[#07264B] px-4 pt-4 pb-3 shadow-[var(--sh-inset)]">
-        {/* Layer 1: Girih medallion behind Mirzo (turns 1/8 on events) */}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 180 180"
-          className="pointer-events-none absolute top-3 h-44 w-44 text-[#EAF2FF]/12"
-          style={{
-            transform: `translate(${(lookOffset.x * -4).toFixed(1)}px, ${(lookOffset.y * -4).toFixed(1)}px) rotate(${girihTurn}deg)`,
-            transition: 'transform 450ms var(--spring-soft)',
-          }}
-        >
-          <polygon
-            points="90,8 112,56 164,56 124,90 142,142 90,114 38,142 56,90 16,56 68,56"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <circle cx="90" cy="84" r="56" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
+      {/* Center (~60%): Arched Mirzo niche with GearTrain + Girih medallion + Mirzo */}
+      <div className="relative z-10 flex flex-col items-center overflow-hidden rounded-t-[96px] rounded-b-[20px] border-2 border-[var(--line-strong)] bg-[#07264B] px-4 pt-4 pb-3 shadow-[var(--sh-inset)]">
+        {/* A05 Three.js (high) or SVG (mid/lite) 24/36/18 gear train */}
+        <GearTrain tier={tier} motionPaused={motionPaused} lookOffset={lookOffset} />
 
-        {/* Layer 2: Mirzo SVG Rig (>= 160px on mobile) */}
+        {/* Mirzo SVG Rig (>= 160px on mobile) */}
         <div
           className="relative z-10"
           style={{
             transform:
               liteMode || motionPaused
                 ? undefined
-                : `translate(${(lookOffset.x * 5).toFixed(1)}px, ${(lookOffset.y * 4).toFixed(1)}px)`,
+                : `translate(${(lookOffset.x * 4).toFixed(1)}px, ${(lookOffset.y * 3).toFixed(1)}px)`,
             transition: 'transform 160ms ease-out',
           }}
         >
@@ -194,11 +346,12 @@ export function WorkshopHud({
             liteMode={liteMode}
             motionPaused={motionPaused}
             lookOffset={lookOffset}
+            idleNudgeCta={idleNudgeCta}
             size={174}
           />
         </div>
 
-        {/* Speech bubble sticker (click completes typing; aria-live exposes full text immediately) */}
+        {/* Speech bubble sticker (click completes typing; aria-live exposes full text) */}
         <button
           type="button"
           onClick={() => setTypedLen(speechText.length)}
@@ -219,21 +372,21 @@ export function WorkshopHud({
       </div>
 
       {/* Live miniature "Mirzo mashinasi" + 3 Ustaxona tokens */}
-      <div className="mt-3 space-y-2.5">
+      <div className="relative z-10 mt-3 space-y-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-[14px] border border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2.5">
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[14px] font-bold text-[#EAF2FF]">
               <PhMachine size={16} />
               <span>{t.hud.machineTitle}</span>
             </p>
-            <code className="mt-0.5 block text-[13.5px] font-medium text-[#F5A800]">
+            <code className="mt-0.5 block text-[13.5px] font-medium text-[#FAAD14]">
               {currentTick.code} <span className="text-[#B6CCE8]">|</span> ball: {currentTick.boxX}
             </code>
           </div>
           <button
             type="button"
             onClick={onStepMachine}
-            className="min-h-[44px] shrink-0 rounded-[10px] border-2 border-[#0E7C70] bg-[#19B7A6] px-3 py-1.5 text-[14px] font-bold text-[#0F1E3A] shadow-[0_2px_0_#0E7C70] active:translate-y-0.5"
+            className="min-h-[44px] shrink-0 rounded-[10px] border-2 border-[#0E7C70] bg-[#19B7A6] px-3 py-1.5 text-[14px] font-bold text-[#0F1E3A] shadow-[0_3px_0_#0E7C70] transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0.5"
           >
             {t.hud.machineStepBtn}
           </button>
@@ -248,10 +401,10 @@ export function WorkshopHud({
                 type="button"
                 onClick={(e) => onOpenWorkshop(ws.id, e)}
                 title={ws.title}
-                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border px-2 text-[14px] font-bold transition-colors ${
+                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border px-2 text-[14px] font-bold transition-all duration-150 ${
                   unlocked
-                    ? 'border-[#19B7A6] bg-[#19B7A6]/15 text-[#EAF2FF] hover:bg-[#19B7A6]/25'
-                    : 'border-[var(--line)] bg-[#07264B] text-[#B6CCE8]/80 shadow-[var(--sh-inset)] hover:border-[var(--line-strong)]'
+                    ? 'border-[#19B7A6] bg-[#19B7A6]/18 text-[#EAF2FF] shadow-[var(--sh-1)] hover:-translate-y-0.5 hover:bg-[#19B7A6]/28 active:translate-y-0.5'
+                    : 'border-[var(--line)] bg-[#07264B] text-[#B6CCE8] shadow-[var(--sh-inset)] hover:border-[var(--line-strong)]'
                 }`}
               >
                 {unlocked ? (
@@ -266,65 +419,67 @@ export function WorkshopHud({
         </div>
       </div>
 
-      {/* Bottom toggles: hardware LED indicators + spring slider */}
-      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={soundEnabled}
-          onClick={onToggleSound}
-          className="flex min-h-[46px] items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold"
+      {/* A09 Base UI Switch primitives with LED & spring thumb */}
+      <div className="relative z-10 mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <Switch.Root
+          checked={soundEnabled}
+          onCheckedChange={onToggleSound}
+          aria-label={soundEnabled ? t.hud.soundOn : t.hud.soundOff}
+          className="flex min-h-[46px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold text-[#EAF2FF] active:scale-[0.96] transition-transform duration-100"
         >
           <span className="inline-flex items-center gap-1.5 leading-snug">
             {soundEnabled ? <PhSoundOn size={17} /> : <PhSoundOff size={17} />}
             <span>{soundEnabled ? t.hud.soundOn : t.hud.soundOff}</span>
           </span>
           <span className="inline-flex shrink-0 items-center gap-1.5">
-            <ToggleLedIcon lit={soundEnabled} size={11} />
+            <ToggleLedIcon lit={ledSoundLit} size={11} />
             <span className="relative inline-flex h-5 w-8 items-center rounded-full border border-[var(--line-strong)] bg-[#07264B] p-0.5">
-              <motion.span
-                layout
-                transition={
-                  motionPaused
-                    ? { duration: 0.1 }
-                    : { type: 'spring', stiffness: 460, damping: 28 }
-                }
-                className={`h-3.5 w-3.5 rounded-full ${
-                  soundEnabled ? 'ml-auto bg-[#19B7A6]' : 'bg-[#B6CCE8]'
-                }`}
-              />
+              <Switch.Thumb className="block">
+                <motion.span
+                  layout
+                  transition={
+                    motionPaused
+                      ? { duration: 0.1 }
+                      : { type: 'spring', stiffness: 520, damping: 30 }
+                  }
+                  className={`block h-3.5 w-3.5 rounded-full ${
+                    soundEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
+                  }`}
+                />
+              </Switch.Thumb>
             </span>
           </span>
-        </button>
+        </Switch.Root>
 
-        <button
-          type="button"
-          role="switch"
-          aria-checked={subtitlesEnabled}
-          onClick={onToggleSubtitles}
-          className="flex min-h-[46px] items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold"
+        <Switch.Root
+          checked={subtitlesEnabled}
+          onCheckedChange={onToggleSubtitles}
+          aria-label={subtitlesEnabled ? t.hud.subtitlesOn : t.hud.subtitlesOff}
+          className="flex min-h-[46px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold text-[#EAF2FF] active:scale-[0.96] transition-transform duration-100"
         >
           <span className="inline-flex items-center gap-1.5 leading-snug">
             <PhSubtitles size={17} />
             <span>{subtitlesEnabled ? t.hud.subtitlesOn : t.hud.subtitlesOff}</span>
           </span>
           <span className="inline-flex shrink-0 items-center gap-1.5">
-            <ToggleLedIcon lit={subtitlesEnabled} size={11} />
+            <ToggleLedIcon lit={ledSubLit} size={11} />
             <span className="relative inline-flex h-5 w-8 items-center rounded-full border border-[var(--line-strong)] bg-[#07264B] p-0.5">
-              <motion.span
-                layout
-                transition={
-                  motionPaused
-                    ? { duration: 0.1 }
-                    : { type: 'spring', stiffness: 460, damping: 28 }
-                }
-                className={`h-3.5 w-3.5 rounded-full ${
-                  subtitlesEnabled ? 'ml-auto bg-[#19B7A6]' : 'bg-[#B6CCE8]'
-                }`}
-              />
+              <Switch.Thumb className="block">
+                <motion.span
+                  layout
+                  transition={
+                    motionPaused
+                      ? { duration: 0.1 }
+                      : { type: 'spring', stiffness: 520, damping: 30 }
+                  }
+                  className={`block h-3.5 w-3.5 rounded-full ${
+                    subtitlesEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
+                  }`}
+                />
+              </Switch.Thumb>
             </span>
           </span>
-        </button>
+        </Switch.Root>
       </div>
     </div>
   );

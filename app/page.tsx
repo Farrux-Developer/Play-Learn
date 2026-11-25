@@ -1,33 +1,34 @@
 /**
  * Main Workshop Page:
- * - Coordinates Paper ("Understand": Hero, Darslar, Tamoyillar) <-> Blueprint ("Play": Workshop HUD, Xarita, Oʻyinlar)
- * - Uses View Transitions clip-path iris from click coordinates + shared Mirzo stage
- * - Single shared pointer handler for Mirzo gaze + grid spotlight
- * - Connects DiagnosticModal, Darslar, Xarita, 3 Ustaxona, and Tamoyillar with persistent localStorage state
+ * - Coordinates Paper ("Understand") <-> Blueprint ("Play") surfaces via View Transitions iris
+ * - Initializes MotionCore (tier governor, shared pointer/idle detector, ticker, event bus)
+ * - Emits typed animation events without coupling business logic to motion internals
  */
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { PhPlay } from '@/components/icons/WorkshopIcons';
+import { DevWorkshopPanel } from '@/components/DevWorkshopPanel';
 import { HeroSection } from '@/components/HeroSection';
 import { NetworkBackdrop } from '@/components/NetworkBackdrop';
-import { WorkshopHeader, type NavSectionId } from '@/components/WorkshopHeader';
-import { DevWorkshopPanel } from '@/components/DevWorkshopPanel';
-import { DiagnosticModal } from '@/components/ui/DiagnosticModal';
 import { DarslarSection } from '@/components/sections/DarslarSection';
-import { XaritaSection } from '@/components/sections/XaritaSection';
 import { GamesSection } from '@/components/sections/GamesSection';
 import { TamoyillarSection } from '@/components/sections/TamoyillarSection';
-import { MACHINE_TICKS, WORKSHOPS, type LessonItem, type WorkshopTask } from '@/lib/data/workshop';
+import { XaritaSection } from '@/components/sections/XaritaSection';
+import { WorkshopHeader, type NavSectionId } from '@/components/WorkshopHeader';
+import { PhPlay } from '@/components/icons/WorkshopIcons';
+import { DiagnosticModal } from '@/components/ui/DiagnosticModal';
+import {
+  LESSONS,
+  MACHINE_TICKS,
+  WORKSHOPS,
+  type LessonItem,
+  type WorkshopTask,
+} from '@/lib/data/workshop';
 import { fireWorkshopConfetti } from '@/lib/engine/confetti';
 import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
 import type { MirzoController, MirzoMood } from '@/lib/engine/mirzo';
 import { applyXpReward } from '@/lib/engine/progression';
-import {
-  detectHardwareLiteDefaults,
-  measureInitialFrames,
-} from '@/lib/engine/quality';
 import { playWorkshopCue } from '@/lib/engine/sound';
 import {
   clearWorkshopState,
@@ -38,10 +39,12 @@ import {
   type WorkshopId,
   type WorkshopState,
 } from '@/lib/engine/store';
+import { motionCore, type QualityTier } from '@/lib/motion/core';
 
 export default function HomePage() {
   const [state, setState] = useState<WorkshopState>(() => createDefaultState());
   const [hydrated, setHydrated] = useState(false);
+  const [tier, setTier] = useState<QualityTier>('mid');
   const [activeNav, setActiveNav] = useState<NavSectionId>('darslar');
   const [activeWorkshopId, setActiveWorkshopId] = useState<WorkshopId>('algoritmlar');
   const [diagOpen, setDiagOpen] = useState(false);
@@ -49,44 +52,63 @@ export default function HomePage() {
   const [speechText, setSpeechText] = useState<string>(WORKSHOP_STRINGS.hud.defaultSay);
   const [nudgeError, setNudgeError] = useState(false);
   const [heroVisible, setHeroVisible] = useState(true);
-  const [pointerPos, setPointerPos] = useState({ x: 720, y: 400 });
+  const [idleNudgeCta, setIdleNudgeCta] = useState(false);
   const [lookOffset, setLookOffset] = useState({ x: 0, y: 0 });
   const mirzoRef = useRef<MirzoController | null>(null);
+  const lastLookUpdateRef = useRef(0);
+  const stateRef = useRef(state);
 
   useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  // Start MotionCore once and synchronize tier + pointer idle nudge
+  useEffect(() => {
     const saved = loadWorkshopState();
-    const hw = detectHardwareLiteDefaults();
-    if (hw.saveData || hw.reducedMotion) {
-      saved.liteMode = true;
-    }
+    stateRef.current = saved;
     queueMicrotask(() => {
       setState(saved);
       setHydrated(true);
     });
+
+    const stopCore = motionCore.start();
+    const syncTel = () => {
+      const tel = motionCore.getTelemetry();
+      setTier(tel.tier);
+    };
+    syncTel();
+    const offTel = motionCore.subscribeTelemetry(syncTel);
+    const offIdle = motionCore.on('pointer:idle', () => {
+      setIdleNudgeCta(true);
+      window.setTimeout(() => setIdleNudgeCta(false), 1400);
+    });
+
+    return () => {
+      offTel();
+      offIdle();
+      stopCore();
+    };
   }, []);
 
+  // Persist workshop progress & sync MotionCore flags
   useEffect(() => {
     if (!hydrated) return;
     saveWorkshopState(state);
+    motionCore.setSoundEnabled(state.soundEnabled);
+    motionCore.setMotionPaused(state.motionPaused);
+    if (state.liteMode && motionCore.getTelemetry().tierOverride === 'auto') {
+      motionCore.setTierOverride('lite');
+    }
     const root = document.documentElement;
     root.setAttribute('data-surface', state.surfaceMode);
-    root.setAttribute('data-lite', String(state.liteMode));
-    root.setAttribute('data-motion-paused', String(state.motionPaused));
   }, [state, hydrated]);
 
-  useEffect(() => {
-    if (!hydrated || state.liteMode) return;
-    return measureInitialFrames(() => {
-      setState((prev) => ({ ...prev, liteMode: true }));
-    });
-  }, [hydrated, state.liteMode]);
-
+  // Sample pointer lookOffset smoothly (<= 20 Hz, zero 60Hz React re-renders)
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === 'touch' || state.liteMode || state.motionPaused) return;
-    document.documentElement.style.setProperty('--mx', `${e.clientX}px`);
-    document.documentElement.style.setProperty('--my', `${e.clientY}px`);
-    setPointerPos({ x: e.clientX, y: e.clientY });
-
+    if (e.pointerType === 'touch' || tier === 'lite' || state.motionPaused) return;
+    const now = performance.now();
+    if (now - lastLookUpdateRef.current < 48) return;
+    lastLookUpdateRef.current = now;
     const nx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
     const ny = (e.clientY / Math.max(1, window.innerHeight)) * 2 - 1;
     setLookOffset({ x: nx, y: ny });
@@ -96,23 +118,45 @@ export default function HomePage() {
     setLookOffset({ x: 0, y: 0 });
   };
 
+  const triggerHaptic = () => {
+    if (
+      state.soundEnabled &&
+      typeof navigator !== 'undefined' &&
+      typeof navigator.vibrate === 'function'
+    ) {
+      navigator.vibrate(8);
+    }
+  };
+
   const switchSurface = (
     nextSurface: 'paper' | 'blueprint',
     e?: React.MouseEvent<HTMLElement>
   ) => {
-    if (state.surfaceMode === nextSurface) return;
+    if (stateRef.current.surfaceMode === nextSurface) return;
+    const vx = e?.clientX;
+    const vy = e?.clientY;
     if (e) {
       document.documentElement.style.setProperty('--vt-x', `${e.clientX}px`);
       document.documentElement.style.setProperty('--vt-y', `${e.clientY}px`);
     }
-    const apply = () => setState((prev) => ({ ...prev, surfaceMode: nextSurface }));
+    motionCore.emit('ui:mode', { mode: nextSurface, x: vx, y: vy });
+
+    const apply = () =>
+      setState((prev) => {
+        const next = { ...prev, surfaceMode: nextSurface };
+        stateRef.current = next;
+        return next;
+      });
     const doc = document as Document & {
       startViewTransition?: (cb: () => void) => void;
     };
+    const reduced =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     if (
       typeof doc.startViewTransition === 'function' &&
       !state.motionPaused &&
-      !state.liteMode
+      tier !== 'lite' &&
+      !reduced
     ) {
       doc.startViewTransition(() => {
         flushSync(apply);
@@ -127,7 +171,7 @@ export default function HomePage() {
     if (!el) return;
     const reduced =
       state.motionPaused ||
-      state.liteMode ||
+      tier === 'lite' ||
       (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
     el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   };
@@ -145,6 +189,7 @@ export default function HomePage() {
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     playWorkshopCue('success', state.soundEnabled);
+    triggerHaptic();
     setActiveNav('oyinlar');
     setMood('happy');
     mirzoRef.current?.setMood('happy');
@@ -157,6 +202,7 @@ export default function HomePage() {
     playWorkshopCue('tap', state.soundEnabled);
     const nextIdx = (state.machineTick + 1) % MACHINE_TICKS.length;
     setState((prev) => ({ ...prev, machineTick: nextIdx }));
+    motionCore.emit('machine:step', { tick: nextIdx });
     setMood(nextIdx === MACHINE_TICKS.length - 1 ? 'happy' : 'think');
     setSpeechText(MACHINE_TICKS[nextIdx].mirzoNote);
   };
@@ -189,22 +235,44 @@ export default function HomePage() {
       markTaskId?: string;
       incrementStreak?: boolean;
       successMessage?: string;
+      source?: string;
     }
   ) => {
-    const outcome = applyXpReward(state, xpDelta, options);
+    const prevSnapshot = stateRef.current;
+    const outcome = applyXpReward(prevSnapshot, xpDelta, options);
+    stateRef.current = outcome.nextState;
     setState(outcome.nextState);
+    triggerHaptic();
+
+    if (xpDelta > 0) {
+      motionCore.emit('xp:gain', {
+        amount: xpDelta,
+        from: options?.source ?? 'workshop',
+      });
+    }
+    if (options?.incrementStreak && outcome.nextState.streak > prevSnapshot.streak) {
+      motionCore.emit('streak:ignite', { streak: outcome.nextState.streak });
+    }
+    for (const id of outcome.newlyUnlockedWorkshops) {
+      motionCore.emit('workshop:unlock', { id });
+    }
 
     if (outcome.leveledUp) {
       playWorkshopCue('levelUp', outcome.nextState.soundEnabled);
+      motionCore.emit('level:up', { level: outcome.newLevel });
       setMood('cheer');
       mirzoRef.current?.celebrate(outcome.newLevel);
-      setSpeechText(`${outcome.newLevel}-darajaga koʻtarilding! Yangi imkoniyatlar ochildi.`);
+      setSpeechText(
+        `${outcome.newLevel}-darajaga koʻtarilding! Yangi imkoniyatlar ochildi.`
+      );
       void fireWorkshopConfetti({
-        liteMode: outcome.nextState.liteMode,
+        liteMode: tier === 'lite',
         motionPaused: outcome.nextState.motionPaused,
+        variant: 'levelUp',
       });
     } else {
       playWorkshopCue('success', outcome.nextState.soundEnabled);
+      motionCore.emit('answer:correct', { xpDelta });
       setMood('happy');
       mirzoRef.current?.setMood('happy');
       if (options?.successMessage) {
@@ -212,8 +280,9 @@ export default function HomePage() {
       }
       if (options?.markTaskId) {
         void fireWorkshopConfetti({
-          liteMode: outcome.nextState.liteMode,
+          liteMode: tier === 'lite',
           motionPaused: outcome.nextState.motionPaused,
+          variant: 'correct',
         });
       }
     }
@@ -223,6 +292,7 @@ export default function HomePage() {
     const alreadyDone = state.completedLessons.includes(lesson.id);
     rewardAndReact(alreadyDone ? 0 : 20, {
       markLessonId: lesson.id,
+      source: lesson.id,
       successMessage: alreadyDone
         ? `${lesson.id} takrorlandi! Endi ustaxonada sinab koʻr.`
         : `${lesson.id} oʻzlashtirildi! +20 XP qoʻshildi.`,
@@ -231,6 +301,7 @@ export default function HomePage() {
 
   const handleSoftError = (msg: string) => {
     playWorkshopCue('softError', state.soundEnabled);
+    motionCore.emit('answer:wrong', {});
     setMood('oops');
     mirzoRef.current?.setMood('oops');
     setNudgeError(true);
@@ -243,6 +314,7 @@ export default function HomePage() {
     rewardAndReact(alreadySolved ? 0 : 25, {
       markTaskId: task.id,
       incrementStreak: !alreadySolved,
+      source: task.id,
       successMessage: alreadySolved
         ? 'Barakalla! Vazifa yana bir bor toʻgʻri yechildi.'
         : 'Barakalla! +25 XP va seriya olovi yondi!',
@@ -250,6 +322,9 @@ export default function HomePage() {
   };
 
   const levelInfo = getLevelInfo(state.xp);
+  const lessonProgressPct = Math.round(
+    (state.completedLessons.length / Math.max(1, LESSONS.length)) * 100
+  );
 
   return (
     <div
@@ -257,14 +332,13 @@ export default function HomePage() {
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       className={`ws-surface min-h-screen ${
-        state.surfaceMode === 'paper' ? 'ws-paper-grain' : ''
+        state.surfaceMode === 'paper' && tier !== 'lite' ? 'ws-paper-grain' : ''
       }`}
     >
       <NetworkBackdrop
         surfaceMode={state.surfaceMode}
-        liteMode={state.liteMode}
+        tier={tier}
         motionPaused={state.motionPaused}
-        pointerPos={pointerPos}
       />
 
       <div className="relative z-10">
@@ -272,6 +346,9 @@ export default function HomePage() {
           activeSection={activeNav}
           surfaceMode={state.surfaceMode}
           motionPaused={state.motionPaused}
+          lessonProgressPct={lessonProgressPct}
+          completedCount={state.completedLessons.length}
+          totalLessons={LESSONS.length}
           onNavigate={handleNavigate}
           onStart={handleStart}
           onTogglePause={() =>
@@ -287,7 +364,7 @@ export default function HomePage() {
             streak={state.streak}
             soundEnabled={state.soundEnabled}
             subtitlesEnabled={state.subtitlesEnabled}
-            liteMode={state.liteMode}
+            tier={tier}
             motionPaused={state.motionPaused}
             unlockedWorkshops={state.unlockedWorkshops}
             machineTick={state.machineTick}
@@ -295,6 +372,7 @@ export default function HomePage() {
             speechText={speechText}
             nudgeError={nudgeError}
             lookOffset={lookOffset}
+            idleNudgeCta={idleNudgeCta}
             mirzoRef={mirzoRef}
             onStart={handleStart}
             onDiagnostic={() => {
@@ -323,7 +401,7 @@ export default function HomePage() {
 
           <DarslarSection
             completedLessons={state.completedLessons}
-            liteMode={state.liteMode}
+            tier={tier}
             motionPaused={state.motionPaused}
             onCompleteLesson={handleCompleteLesson}
             onWrongPrediction={(lesson) =>
@@ -334,12 +412,16 @@ export default function HomePage() {
 
           <XaritaSection
             xp={state.xp}
+            tier={tier}
+            motionPaused={state.motionPaused}
             unlockedWorkshops={state.unlockedWorkshops}
             onOpenWorkshop={handleOpenWorkshop}
           />
 
           <GamesSection
             xp={state.xp}
+            tier={tier}
+            motionPaused={state.motionPaused}
             activeWorkshopId={activeWorkshopId}
             unlockedWorkshops={state.unlockedWorkshops}
             solvedTasks={state.solvedTasks}
@@ -350,9 +432,12 @@ export default function HomePage() {
           />
 
           <TamoyillarSection
-            liteMode={state.liteMode}
+            tier={tier}
             motionPaused={state.motionPaused}
             onResetProgress={() => {
+              if (state.streak > 0) {
+                motionCore.emit('streak:break', { previousStreak: state.streak });
+              }
               setState(clearWorkshopState());
               setActiveWorkshopId('algoritmlar');
               setMood('idle');
@@ -365,10 +450,27 @@ export default function HomePage() {
       {/* Diagnostic Modal ("Qisqa sinov") */}
       <DiagnosticModal
         open={diagOpen}
+        liteMode={tier === 'lite'}
+        motionPaused={state.motionPaused}
         onClose={() => setDiagOpen(false)}
+        onAnswerFeedback={(correct) => {
+          playWorkshopCue(correct ? 'success' : 'softError', state.soundEnabled);
+          motionCore.emit(correct ? 'answer:correct' : 'answer:wrong', {});
+        }}
         onComplete={(res) => {
           setDiagOpen(false);
+          motionCore.emit('quiz:complete', {
+            score: res.correctCount,
+            total: 3,
+            unlockedWorkshop: res.recommendedWorkshop,
+          });
+          void fireWorkshopConfetti({
+            liteMode: tier === 'lite',
+            motionPaused: state.motionPaused,
+            variant: 'quiz',
+          });
           rewardAndReact(res.xpEarned, {
+            source: 'diagnostic',
             successMessage: `Sinov yakunlandi! +${res.xpEarned} XP qoʻshildi.`,
           });
           setActiveWorkshopId(res.recommendedWorkshop);
@@ -387,7 +489,7 @@ export default function HomePage() {
             className="ws-key-btn ws-key-btn--primary min-h-[52px] w-full"
           >
             <span>{WORKSHOP_STRINGS.hero.primaryCta}</span>
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--on-accent)]/18">
+            <span className="ws-key-icon inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--on-accent)]/18">
               <PhPlay size={13} weight="fill" />
             </span>
           </button>
@@ -397,25 +499,38 @@ export default function HomePage() {
       <DevWorkshopPanel
         xp={state.xp}
         streak={state.streak}
-        liteMode={state.liteMode}
+        surfaceMode={state.surfaceMode}
         onAddXp={(delta) =>
           rewardAndReact(delta, {
+            source: 'dev',
             successMessage: `+${delta} XP qoʻshildi! Kolba toʻlyapti.`,
           })
         }
         onLevelUp={() =>
           rewardAndReact(120, {
+            source: 'dev-levelup',
             successMessage: 'Yangi daraja va yangi ustaxona ochildi!',
           })
         }
         onStreakPlus={() => {
           playWorkshopCue('success', state.soundEnabled);
-          setState((prev) => ({ ...prev, streak: prev.streak + 1 }));
+          const nextStreak = state.streak + 1;
+          setState((prev) => ({ ...prev, streak: nextStreak }));
+          motionCore.emit('streak:ignite', { streak: nextStreak });
           setMood('happy');
           setSpeechText('Seriya olovi yondi!');
         }}
+        onStreakBreak={() => {
+          const prevStreak = state.streak;
+          setState((prev) => ({ ...prev, streak: 0 }));
+          motionCore.emit('streak:break', { previousStreak: prevStreak });
+          setMood('idle');
+          setSpeechText('Seriya sokinlandi — yangidan boshlaymiz!');
+        }}
         onCorrect={() => {
           playWorkshopCue('success', state.soundEnabled);
+          triggerHaptic();
+          motionCore.emit('answer:correct', { xpDelta: 10 });
           setMood('happy');
           mirzoRef.current?.setMood('happy');
           setSpeechText('Barakalla! Aniq va toʻgʻri.');
@@ -423,10 +538,44 @@ export default function HomePage() {
         onWrong={() =>
           handleSoftError('Hechqisi yoʻq — qadamni birga tekshiramiz.')
         }
-        onToggleLite={() =>
-          setState((prev) => ({ ...prev, liteMode: !prev.liteMode }))
+        onQuizComplete={() => {
+          playWorkshopCue('levelUp', state.soundEnabled);
+          motionCore.emit('quiz:complete', {
+            score: 3,
+            total: 3,
+            unlockedWorkshop: 'mantiq',
+          });
+          setMood('cheer');
+          mirzoRef.current?.celebrate(levelInfo.level);
+          void fireWorkshopConfetti({
+            liteMode: tier === 'lite',
+            motionPaused: state.motionPaused,
+            variant: 'quiz',
+          });
+          setSpeechText('Sinov yakunlandi — barcha yulduzlar olindi!');
+        }}
+        onUnlockNext={() => {
+          const nextLocked = WORKSHOPS.find(
+            (w) => !state.unlockedWorkshops.includes(w.id)
+          );
+          if (nextLocked) {
+            const delta = Math.max(20, nextLocked.unlockXp - state.xp);
+            rewardAndReact(delta, {
+              source: 'dev-unlock',
+              successMessage: `${nextLocked.title} ochildi!`,
+            });
+          } else {
+            motionCore.emit('workshop:unlock', { id: 'sikllar' });
+            setSpeechText('Barcha ustaxonalar allaqachon ochiq!');
+          }
+        }}
+        onToggleSurface={() =>
+          switchSurface(stateRef.current.surfaceMode === 'paper' ? 'blueprint' : 'paper')
         }
         onReset={() => {
+          if (state.streak > 0) {
+            motionCore.emit('streak:break', { previousStreak: state.streak });
+          }
           setState(clearWorkshopState());
           setActiveWorkshopId('algoritmlar');
           setMood('idle');

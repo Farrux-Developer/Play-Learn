@@ -1,51 +1,69 @@
 /**
- * Interactive blueprint/paper backdrop:
- * 1) 24px architectural grid with CSS radial mask cursor highlight (--mx/--my)
- * 2) Canvas 2D node graph (<= 44 nodes, DPR <= 2, headline zone masked)
- *    where edges brighten near pointer and clicking a node sends a data packet pulse.
- * Automatically pauses when hidden, off-screen, or in lite/reduced-motion mode.
+ * A13 Live Graph Backdrop:
+ * - 24px / 120px architectural grid with pointer radial spotlight (--mx / --my)
+ * - Canvas 2D node graph (<= 48 nodes, DPR <= 2) driven by MotionCore's single ticker
+ * - High tier: 0.05 Hz simplex-noise drift <= 1.5px; Mid tier: 30 FPS static graph;
+ *   Lite tier / reduced-motion: static architectural grid only
+ * - Masks headline & copy reading zone on ALL viewports (desktop + mobile)
+ * - Click/tap on a node launches a glowing packet with trailing tail along shortest BFS path
  */
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { createNoise2D } from 'simplex-noise';
 import type { SurfaceMode } from '@/lib/engine/store';
+import { motionCore, type QualityTier } from '@/lib/motion/core';
 
 interface NetworkBackdropProps {
   surfaceMode: SurfaceMode;
-  liteMode: boolean;
+  tier: QualityTier;
   motionPaused: boolean;
-  pointerPos: { x: number; y: number };
 }
 
 interface GraphNode {
+  baseX: number;
+  baseY: number;
   x: number;
   y: number;
   neighbors: number[];
 }
 
-interface Packet {
-  from: number;
-  to: number;
+interface PathPacket {
+  path: number[];
+  segIdx: number;
   t: number;
+  durationMs: number;
+}
+
+function findShortestPath(nodes: GraphNode[], start: number, target: number): number[] {
+  if (start === target) return [start];
+  const queue: number[][] = [[start]];
+  const visited = new Set<number>([start]);
+  while (queue.length > 0) {
+    const path = queue.shift()!;
+    const last = path[path.length - 1];
+    for (const nb of nodes[last]?.neighbors ?? []) {
+      if (nb === target) return [...path, nb];
+      if (!visited.has(nb) && path.length < 5) {
+        visited.add(nb);
+        queue.push([...path, nb]);
+      }
+    }
+  }
+  return [start, ...(nodes[start]?.neighbors.slice(0, 1) ?? [])];
 }
 
 export function NetworkBackdrop({
   surfaceMode,
-  liteMode,
+  tier,
   motionPaused,
-  pointerPos,
 }: NetworkBackdropProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pointerRef = useRef(pointerPos);
-  const packetsRef = useRef<Packet[]>([]);
-
-  useEffect(() => {
-    pointerRef.current = pointerPos;
-  }, [pointerPos]);
+  const packetsRef = useRef<PathPacket[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || liteMode || motionPaused) return;
+    if (!canvas || tier === 'lite' || motionPaused) return;
     const reduced =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     if (reduced) return;
@@ -53,10 +71,20 @@ export function NetworkBackdrop({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const noise2D = createNoise2D();
     let width = 0;
     let height = 0;
     let nodes: GraphNode[] = [];
-    let rafId = 0;
+    let midAccumulator = 0;
+    let needsStaticPaint = true;
+
+    const isMaskedZone = (x: number, y: number) => {
+      if (width < 768) {
+        // Mask top mobile hero reading block completely
+        return y > 70 && y < 440;
+      }
+      return x < width * 0.54 && y > 80 && y < 520;
+    };
 
     const buildGraph = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -71,36 +99,56 @@ export function NetworkBackdrop({
       const list: GraphNode[] = [];
       for (let r = 0; r < rows; r += 1) {
         for (let c = 0; c < cols; c += 1) {
-          const jitterX = ((r * 13 + c * 7) % 5) * 8 - 16;
-          const jitterY = ((r * 5 + c * 11) % 5) * 7 - 14;
-          const x = ((c + 0.5) / cols) * width + jitterX;
-          const y = ((r + 0.5) / rows) * height + jitterY;
-          list.push({ x, y, neighbors: [] });
+          const jx = ((r * 13 + c * 7) % 5) * 8 - 16;
+          const jy = ((r * 5 + c * 11) % 5) * 7 - 14;
+          const x = ((c + 0.5) / cols) * width + jx;
+          const y = ((r + 0.5) / rows) * height + jy;
+          list.push({ baseX: x, baseY: y, x, y, neighbors: [] });
         }
       }
       for (let i = 0; i < list.length; i += 1) {
         for (let j = i + 1; j < list.length; j += 1) {
-          const dx = list[i].x - list[j].x;
-          const dy = list[i].y - list[j].y;
-          const dist = Math.hypot(dx, dy);
+          const dist = Math.hypot(list[i].x - list[j].x, list[i].y - list[j].y);
           if (dist < (width < 768 ? 160 : 210)) {
             list[i].neighbors.push(j);
             list[j].neighbors.push(i);
           }
         }
       }
-      nodes = list.slice(0, 44);
+      nodes = list.slice(0, 48);
+      needsStaticPaint = true;
     };
 
-    const drawFrame = () => {
-      rafId = 0;
+    const drawFrame = (timeSec: number, deltaMs: number) => {
       if (document.hidden) return;
-      ctx.clearRect(0, 0, width, height);
+      if (tier === 'mid') {
+        midAccumulator += deltaMs;
+        if (!needsStaticPaint && packetsRef.current.length === 0 && midAccumulator < 34) {
+          return;
+        }
+        if (midAccumulator < 33 && packetsRef.current.length > 0) return;
+        midAccumulator = 0;
+      }
+      needsStaticPaint = false;
+
+      const ptr = motionCore.getPointer();
+      const px = ptr.x;
+      const py = ptr.y;
       const isPaper = surfaceMode === 'paper';
       const baseRgb = isPaper ? '15, 76, 129' : '234, 242, 255';
       const accentRgb = isPaper ? '25, 183, 166' : '245, 168, 0';
-      const px = pointerRef.current.x;
-      const py = pointerRef.current.y;
+
+      // Organic 0.05 Hz simplex-noise drift <= 1.5px on high tier only
+      if (tier === 'high') {
+        const t = timeSec * 0.05;
+        for (let i = 0; i < nodes.length; i += 1) {
+          const n = nodes[i];
+          n.x = n.baseX + noise2D(i * 0.37, t) * 1.5;
+          n.y = n.baseY + noise2D(i * 0.37 + 19, t) * 1.5;
+        }
+      }
+
+      ctx.clearRect(0, 0, width, height);
 
       for (let i = 0; i < nodes.length; i += 1) {
         const a = nodes[i];
@@ -109,12 +157,11 @@ export function NetworkBackdrop({
           const b = nodes[j];
           const midX = (a.x + b.x) / 2;
           const midY = (a.y + b.y) / 2;
-          const inHeadlineZone = width >= 768 && midX < width * 0.52 && midY > 90 && midY < 470;
-          if (inHeadlineZone) continue;
+          if (isMaskedZone(midX, midY)) continue;
 
           const dist = Math.hypot(midX - px, midY - py);
-          const boost = Math.max(0, 1 - dist / 180);
-          ctx.strokeStyle = `rgba(${baseRgb}, ${(0.07 + boost * 0.24).toFixed(3)})`;
+          const boost = ptr.isTouch ? 0 : Math.max(0, 1 - dist / 180);
+          ctx.strokeStyle = `rgba(${baseRgb}, ${(0.065 + boost * 0.24).toFixed(3)})`;
           ctx.lineWidth = boost > 0.35 ? 1.5 : 1;
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
@@ -125,82 +172,100 @@ export function NetworkBackdrop({
 
       for (let i = 0; i < nodes.length; i += 1) {
         const n = nodes[i];
-        const inHeadlineZone = width >= 768 && n.x < width * 0.52 && n.y > 90 && n.y < 470;
-        if (inHeadlineZone) continue;
+        if (isMaskedZone(n.x, n.y)) continue;
         const dist = Math.hypot(n.x - px, n.y - py);
-        const boost = Math.max(0, 1 - dist / 150);
-        ctx.fillStyle = `rgba(${baseRgb}, ${(0.14 + boost * 0.42).toFixed(3)})`;
+        const boost = ptr.isTouch ? 0 : Math.max(0, 1 - dist / 150);
+        ctx.fillStyle = `rgba(${baseRgb}, ${(0.14 + boost * 0.4).toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 2.2 + boost * 1.6, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, 2.2 + boost * 1.5, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const nextPackets: Packet[] = [];
-      for (const p of packetsRef.current) {
-        const a = nodes[p.from];
-        const b = nodes[p.to];
-        if (!a || !b) continue;
-        const nextT = p.t + 0.04;
-        if (nextT < 1) {
-          const x = a.x + (b.x - a.x) * nextT;
-          const y = a.y + (b.y - a.y) * nextT;
-          ctx.fillStyle = `rgba(${accentRgb}, 0.92)`;
+      // Shortest-path packets with trailing comet tail
+      const remaining: PathPacket[] = [];
+      for (const pkt of packetsRef.current) {
+        const fromNode = nodes[pkt.path[pkt.segIdx]];
+        const toNode = nodes[pkt.path[pkt.segIdx + 1]];
+        if (!fromNode || !toNode) continue;
+
+        const step = deltaMs / Math.max(180, pkt.durationMs);
+        let nextT = pkt.t + step;
+        let nextSeg = pkt.segIdx;
+        if (nextT >= 1) {
+          nextSeg += 1;
+          nextT = 0;
+        }
+        if (nextSeg < pkt.path.length - 1) {
+          const a = nodes[pkt.path[nextSeg]];
+          const b = nodes[pkt.path[nextSeg + 1]];
+          // ease-in-out
+          const e = nextT < 0.5 ? 2 * nextT * nextT : 1 - Math.pow(-2 * nextT + 2, 2) / 2;
+          const x = a.x + (b.x - a.x) * e;
+          const y = a.y + (b.y - a.y) * e;
+          const tailE = Math.max(0, e - 0.22);
+          const tx = a.x + (b.x - a.x) * tailE;
+          const ty = a.y + (b.y - a.y) * tailE;
+
+          ctx.strokeStyle = `rgba(${accentRgb}, 0.42)`;
+          ctx.lineWidth = 2.6;
+          ctx.beginPath();
+          ctx.moveTo(tx, ty);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+
+          ctx.fillStyle = `rgba(${accentRgb}, 0.95)`;
           ctx.beginPath();
           ctx.arc(x, y, 4.2, 0, Math.PI * 2);
           ctx.fill();
-          nextPackets.push({ from: p.from, to: p.to, t: nextT });
+
+          remaining.push({ ...pkt, segIdx: nextSeg, t: nextT });
         }
       }
-      packetsRef.current = nextPackets;
-      if (nextPackets.length > 0) {
-        rafId = requestAnimationFrame(drawFrame);
-      }
-    };
-
-    const scheduleDraw = () => {
-      if (!rafId) rafId = requestAnimationFrame(drawFrame);
+      packetsRef.current = remaining;
     };
 
     const handleClick = (e: MouseEvent) => {
       if (!nodes.length) return;
-      let bestIdx = -1;
-      let bestDist = 75;
+      let startIdx = -1;
+      let bestDist = 90;
       for (let i = 0; i < nodes.length; i += 1) {
+        if (isMaskedZone(nodes[i].x, nodes[i].y)) continue;
         const d = Math.hypot(nodes[i].x - e.clientX, nodes[i].y - e.clientY);
         if (d < bestDist) {
           bestDist = d;
-          bestIdx = i;
+          startIdx = i;
         }
       }
-      if (bestIdx !== -1) {
-        for (const nb of nodes[bestIdx].neighbors.slice(0, 4)) {
-          packetsRef.current.push({ from: bestIdx, to: nb, t: 0 });
-        }
-        scheduleDraw();
+      if (startIdx === -1) return;
+      // Pick farthest neighbor reachable in 2-3 hops for visible shortest-path packet
+      const targetIdx = Math.min(nodes.length - 1, (startIdx + 9) % nodes.length);
+      const path = findShortestPath(nodes, startIdx, targetIdx);
+      if (path.length >= 2) {
+        packetsRef.current.push({
+          path,
+          segIdx: 0,
+          t: 0,
+          durationMs: 320,
+        });
       }
     };
 
-    const onPointer = () => scheduleDraw();
-
+    const onResize = () => buildGraph();
     buildGraph();
-    scheduleDraw();
-    window.addEventListener('resize', () => {
-      buildGraph();
-      scheduleDraw();
-    });
-    window.addEventListener('pointermove', onPointer, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('click', handleClick);
+    const offTick = motionCore.registerTicker(drawFrame);
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('pointermove', onPointer);
+      offTick();
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('click', handleClick);
     };
-  }, [surfaceMode, liteMode, motionPaused]);
+  }, [surfaceMode, tier, motionPaused]);
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* 24px / 120px architectural grid highlighted around cursor via CSS mask */}
+      {/* 24px / 120px architectural grid */}
       <div
         className="absolute inset-0 opacity-65"
         style={{
@@ -211,7 +276,7 @@ export function NetworkBackdrop({
           backgroundSize: '120px 120px, 120px 120px, 24px 24px, 24px 24px',
         }}
       />
-      {!liteMode && !motionPaused ? (
+      {tier !== 'lite' && !motionPaused ? (
         <div
           className="absolute inset-0"
           style={{
