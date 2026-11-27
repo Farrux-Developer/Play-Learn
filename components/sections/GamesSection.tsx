@@ -12,10 +12,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Tabs } from '@base-ui/react/tabs';
 import {
   GearLoader,
-  MechLockIcon,
   PhCheck,
-  PhPlay,
   PhWorkshop,
+} from '@/components/icons/SectionIcons';
+import {
+  MechLockIcon,
+  PhPlay,
   PinStarIcon,
   WorkshopTokenIcon,
 } from '@/components/icons/WorkshopIcons';
@@ -72,12 +74,15 @@ export function GamesSection({
   const liteMode = tier === 'lite';
   const activeWorkshop =
     WORKSHOPS.find((w) => w.id === activeWorkshopId) ?? WORKSHOPS[0];
-  const isUnlocked =
-    unlockedWorkshops.includes(activeWorkshop.id) || xp >= activeWorkshop.unlockXp;
-  const tasks = activeWorkshop.tasks;
+  const isUnlocked = activeWorkshop
+    ? unlockedWorkshops.includes(activeWorkshop.id) || xp >= activeWorkshop.unlockXp
+    : false;
+  const tasks = activeWorkshop?.tasks ?? [];
   const activeTask = tasks.length > 0 ? tasks[taskIdx % tasks.length] : null;
   const t = WORKSHOP_STRINGS.reviewStrings;
-  const activeAccent = WORKSHOP_TOKENS[activeWorkshop.id];
+  const activeAccent = activeWorkshop
+    ? WORKSHOP_TOKENS[activeWorkshop.id]
+    : WORKSHOP_TOKENS.algoritmlar;
 
   const allSolvedInWorkshop =
     tasks.length > 0 && tasks.every((tk) => solvedTasks.includes(tk.id));
@@ -155,7 +160,7 @@ export function GamesSection({
   };
 
   const handleSelectOption = (idx: number) => {
-    if (!activeTask) return;
+    if (!activeTask || !activeWorkshop) return;
     setPickedIndex(idx);
     if (idx === activeTask.correctIndex) {
       setFeedbackState('correct');
@@ -177,6 +182,8 @@ export function GamesSection({
   };
 
   const codeLines = activeTask ? activeTask.codeSnippet.split('\n') : [];
+
+  if (!activeWorkshop) return null;
 
   return (
     <section
@@ -217,7 +224,9 @@ export function GamesSection({
               return (
                 <Tabs.Tab
                   key={ws.id}
+                  id={`ws-tab-${ws.id}`}
                   value={ws.id}
+                  aria-controls={active ? `ws-panel-${ws.id}` : undefined}
                   className={`flex min-h-[64px] cursor-pointer items-center justify-between gap-3 rounded-[16px] border-2 px-4 py-3 text-left transition-[transform,border-color,background-color] duration-150 ${
                     active
                       ? 'bg-[#11437D] shadow-[var(--sh-3)]'
@@ -253,7 +262,11 @@ export function GamesSection({
             })}
           </Tabs.List>
 
-          <Tabs.Panel value={activeWorkshop.id}>
+          <Tabs.Panel
+            id={`ws-panel-${activeWorkshop.id}`}
+            aria-labelledby={`ws-tab-${activeWorkshop.id}`}
+            value={activeWorkshop.id}
+          >
             {switching ? (
               <div className="ws-blueprint-panel flex min-h-[260px] items-center justify-center bg-[#07264B] p-6">
                 <GearLoader label={t.loadingText} />

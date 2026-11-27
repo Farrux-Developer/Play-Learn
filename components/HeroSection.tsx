@@ -9,14 +9,11 @@
 
 import React, { useEffect, useRef } from 'react';
 import {
-  PhCheck,
   PhChecklist,
-  PhLightning,
   PhPlay,
-  PhWorkshop,
 } from '@/components/icons/WorkshopIcons';
 import { WorkshopHud } from '@/components/WorkshopHud';
-import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
+import { HERO_STRINGS } from '@/lib/engine/heroStrings';
 import type { MirzoController, MirzoMood } from '@/lib/engine/mirzo';
 import type { WorkshopId } from '@/lib/engine/store';
 import type { QualityTier } from '@/lib/motion/core';
@@ -45,11 +42,13 @@ interface HeroSectionProps {
   onStepMachine: () => void;
   onOpenWorkshop: (id: WorkshopId, e: React.MouseEvent<HTMLButtonElement>) => void;
   onHeroVisibleChange?: (visible: boolean) => void;
+  headlineSlot?: React.ReactNode;
+  promisesSlot?: React.ReactNode;
 }
 
 export function HeroSection(props: HeroSectionProps) {
   const heroRef = useRef<HTMLElement | null>(null);
-  const headlineRef = useRef<HTMLHeadingElement | null>(null);
+  const headlineRef = useRef<HTMLDivElement | null>(null);
   const subBlockRef = useRef<HTMLDivElement | null>(null);
   const actionsRef = useRef<HTMLDivElement | null>(null);
   const hudWrapRef = useRef<HTMLDivElement | null>(null);
@@ -96,10 +95,11 @@ export function HeroSection(props: HeroSectionProps) {
       if (cancelled) return;
       gsap.registerPlugin(SplitText);
 
+      const headingEl = headlineRef.current?.querySelector('h1') ?? headlineRef.current;
       ctx = gsap.context(() => {
         if (played) {
           // Repeat visit <= 360ms without SplitText
-          gsap.from([headlineRef.current, subBlockRef.current, hudWrapRef.current], {
+          gsap.from([headingEl, subBlockRef.current, hudWrapRef.current], {
             opacity: 0,
             y: 8,
             duration: 0.32,
@@ -110,8 +110,8 @@ export function HeroSection(props: HeroSectionProps) {
         }
 
         const tl = gsap.timeline();
-        if (headlineRef.current) {
-          const split = new SplitText(headlineRef.current, { type: 'lines', mask: 'lines' });
+        if (headingEl) {
+          const split = new SplitText(headingEl, { type: 'lines', mask: 'lines' });
           tl.from(
             split.lines,
             {
@@ -165,8 +165,7 @@ export function HeroSection(props: HeroSectionProps) {
     };
   }, [liteMode, props.motionPaused]);
 
-  const t = WORKSHOP_STRINGS.hero;
-  const promiseIcons = [PhCheck, PhWorkshop, PhLightning];
+  const t = HERO_STRINGS.hero;
 
   return (
     <section
@@ -177,38 +176,8 @@ export function HeroSection(props: HeroSectionProps) {
       <div className="grid items-center gap-8 lg:grid-cols-[1.03fr_0.97fr] lg:gap-10">
         {/* Left column: Paper archival reading & crisp typography */}
         <div className="space-y-5">
-          {/* Clean workshop label sticker (no decorative colored status dots) */}
-          <p className="inline-block rounded-[8px] border-2 border-[var(--line-strong)] bg-[var(--surface-raised)] px-3.5 py-1 text-[14px] font-bold text-[var(--on-surface)] shadow-[var(--sh-1)]">
-            {t.audienceTag}
-          </p>
-
-          {/* Fluid Hero Headline + uncluttered typographic 1-2-3 cadence */}
-          <div>
-            <h1
-              ref={headlineRef}
-              className="ws-hero-title font-extrabold leading-[0.98] tracking-[-0.025em]"
-            >
-              {t.headline}
-            </h1>
-            <p
-              aria-hidden="true"
-              className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14.5px] font-bold text-[var(--accent)]"
-            >
-              <span>
-                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">1.</span>
-                Tushun
-              </span>
-              <span className="h-[2px] w-3 bg-[var(--line-strong)]" />
-              <span>
-                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">2.</span>
-                Oʻyna
-              </span>
-              <span className="h-[2px] w-3 bg-[var(--line-strong)]" />
-              <span>
-                <span className="ws-tabular mr-1 text-[var(--on-surface-muted)]">3.</span>
-                Boshqar
-              </span>
-            </p>
+          <div ref={headlineRef} className="space-y-5">
+            {props.headlineSlot}
           </div>
 
           {/* Subtitle + Physical Keys + Clean Promises Strip */}
@@ -242,18 +211,7 @@ export function HeroSection(props: HeroSectionProps) {
               </button>
             </div>
 
-            {/* 3 Product Promises with icons (clean typographic row, no extra boxed pill noise) */}
-            <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--line)] pt-3.5 text-[14.5px] font-semibold text-[var(--on-surface)]">
-              {t.promises.map((item, idx) => {
-                const Icon = promiseIcons[idx] || PhCheck;
-                return (
-                  <li key={item.id} className="inline-flex items-center gap-2">
-                    <Icon size={17} weight="bold" className="shrink-0 text-[var(--ok-ink)]" />
-                    <span>{item.label}</span>
-                  </li>
-                );
-              })}
-            </ul>
+            {props.promisesSlot}
           </div>
         </div>
 

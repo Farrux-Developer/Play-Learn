@@ -1,0 +1,106 @@
+{
+  "id": "w5-08-countdown-modify",
+  "workshop": "algoritm",
+  "orderNumber": 8,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "modify",
+  "title": "Teskari sanoq chegarasini toʻgʻrilash",
+  "customerName": "Astronom Anvar",
+  "goalKey": "algoritm.w5-08-countdown-modify.goal",
+  "goalText": "Hozir sanoq 0 ni ham chiqarib yuboryapti. Uni n dan 1 gacha toʻxtaydigan qilib oʻzgartir.",
+  "parts": ["SET", "LABEL", "JUMP_IF", "OUT", "SUB", "JUMP", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [3] }, "expected": { "outputs": [3, 2, 1] } },
+      { "id": "v2", "input": { "inputs": [1] }, "expected": { "outputs": [1] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [5] }, "expected": { "outputs": [5, 4, 3, 2, 1] } }
+    ]
+  },
+  "par": { "instructions": 6, "ticks": 32 },
+  "hints": [
+    "2-qatordagi JUMP_IF sharti faqat n < 0 boʻlganda toʻxtayapti.",
+    "0 ham chiqmasligi uchun < oʻrniga <= belgisini qoʻy.",
+    "n <= 0 boʻlganda done yorligʻiga sakraydi."
+  ],
+  "feedbackRules": [
+    {
+      "id": "included-zero",
+      "pattern": "always",
+      "misconception": "Loop stopped at < 0 instead of <= 0, emitting trailing 0",
+      "messageKey": "feedback.countdownZero"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.countdownZero": "Oxirida ortiqcha 0 chiqyapti: JUMP_IF n < 0 ni <= 0 ga almashtir."
+  },
+  "reflectQuestion": {
+    "question": "< 0 va <= 0 oʻrtasidagi farq nimada?",
+    "options": [
+      "<= 0 sharti n = 0 boʻlganda ham siklni darhol toʻxtatadi",
+      "Ikkalasi mutlaqo bir xil ishlaydi",
+      "< 0 faqat juft sonlarda ishlaydi"
+    ],
+    "correctIndex": 0,
+    "explanation": "Tenglik belgisi qoʻshilsa 0 qiymatining oʻzi ham chiqish shartiga tushadi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "n", "value": { "kind": "input" } },
+        { "op": "LABEL", "label": "loop" },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "n" },
+          "cmp": "<",
+          "right": { "kind": "lit", "value": 0 },
+          "targetLabel": "done"
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "n" } },
+        {
+          "op": "SUB",
+          "target": "n",
+          "left": { "kind": "var", "name": "n" },
+          "right": { "kind": "lit", "value": 1 }
+        },
+        { "op": "JUMP", "targetLabel": "loop" },
+        { "op": "LABEL", "label": "done" },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "n", "value": { "kind": "input" } },
+        { "op": "LABEL", "label": "loop" },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "n" },
+          "cmp": "<=",
+          "right": { "kind": "lit", "value": 0 },
+          "targetLabel": "done"
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "n" } },
+        {
+          "op": "SUB",
+          "target": "n",
+          "left": { "kind": "var", "name": "n" },
+          "right": { "kind": "lit", "value": 1 }
+        },
+        { "op": "JUMP", "targetLabel": "loop" },
+        { "op": "LABEL", "label": "done" },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 65,
+  "reviewStatus": "draft"
+}

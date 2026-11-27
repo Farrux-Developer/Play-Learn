@@ -1,0 +1,144 @@
+{
+  "id": "w5-loop-guard",
+  "workshop": "algoritm",
+  "orderNumber": 7,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "debug",
+  "title": "Xatoni top: 1 dan N gacha yigʻindi sikli",
+  "customerName": "Kutubxonachi Lola",
+  "goalKey": "algoritm.w5-loop-guard.goal",
+  "goalText": "Sikl cheksiz aylanib qoldi! Nima yetishmayotganini top va 1 dan N gacha yigʻindini chiqar.",
+  "parts": ["SET", "ADD", "SUB", "LABEL", "JUMP", "JUMP_IF", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [4] }, "expected": { "outputs": [10] } },
+      { "id": "v2", "input": { "inputs": [1] }, "expected": { "outputs": [1] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [10] }, "expected": { "outputs": [55] } }
+    ],
+    "generatorSeed": 502,
+    "generator": { "kind": "vm-sum-n", "count": 4, "min": 2, "max": 15 }
+  },
+  "par": { "instructions": 8, "ticks": 85 },
+  "hints": [
+    "Hisoblagich n har qadamda 1 ga kamaymasa, sikl toʻxtamaydi.",
+    "ADD sum dan keyin n ni 1 ga kamaytiruvchi SUB n = n - 1 buyrugʻini qoʻsh.",
+    "SUB buyrugʻi JUMP loop dan oldin turishi kerak."
+  ],
+  "feedbackRules": [
+    {
+      "id": "infinite-loop",
+      "pattern": "error:tick_limit_exceeded",
+      "misconception": "Loop counter never decrements or exit guard is unreachable",
+      "messageKey": "feedback.infiniteLoop"
+    },
+    {
+      "id": "off-by-one",
+      "pattern": "off_by_one",
+      "misconception": "Stopped loop one step early or included 0",
+      "messageKey": "feedback.offByOne"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.infiniteLoop": "Mirzo mashinasi cheksiz siklga tushdi: n har takrorlashda kamaymayapti! SUB n = n - 1 qoʻsh.",
+    "feedback.offByOne": "Natija 1 ga farq qilyapti — sikldan chiqish sharti n <= 0 ekanini tekshir."
+  },
+  "workedExample": {
+    "title": "Sikl qanday tugaydi?",
+    "steps": [
+      {
+        "instructionText": "ADD sum = sum + n",
+        "note": "Yigʻindiga joriy n qoʻshiladi (masalan 4).",
+        "vars": { "n": 4, "sum": 4 }
+      },
+      {
+        "instructionText": "SUB n = n - 1",
+        "note": "n endi 3 ga tushadi, shuning uchun sikl albatta 0 ga yetadi.",
+        "vars": { "n": 3, "sum": 4 }
+      },
+      {
+        "instructionText": "JUMP_IF n <= 0 -> done",
+        "note": "n nolga tushganda sikldan chiqamiz va sum = 10 chiqadi.",
+        "vars": { "n": 0, "sum": 10 },
+        "outputs": [10]
+      }
+    ]
+  },
+  "reflectQuestion": {
+    "question": "Har bir siklda albatta qaysi ikki narsa boʻlishi shart?",
+    "options": [
+      "Chiqish sharti va oʻsha shartga yaqinlashtiradigan oʻzgarish",
+      "Kamida uchta LABEL",
+      "Faqat koʻpaytirish amali"
+    ],
+    "correctIndex": 0,
+    "explanation": "Hisoblagich oʻzgarmasa chiqish sharti hech qachon bajarilmaydi va sikl abadiy aylanadi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "n", "value": { "kind": "input" } },
+        { "op": "SET", "target": "sum", "value": { "kind": "lit", "value": 0 } },
+        { "op": "LABEL", "label": "loop" },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "n" },
+          "cmp": "<=",
+          "right": { "kind": "lit", "value": 0 },
+          "targetLabel": "done"
+        },
+        {
+          "op": "ADD",
+          "target": "sum",
+          "left": { "kind": "var", "name": "sum" },
+          "right": { "kind": "var", "name": "n" }
+        },
+        { "op": "JUMP", "targetLabel": "loop" },
+        { "op": "LABEL", "label": "done" },
+        { "op": "OUT", "value": { "kind": "var", "name": "sum" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "n", "value": { "kind": "input" } },
+        { "op": "SET", "target": "sum", "value": { "kind": "lit", "value": 0 } },
+        { "op": "LABEL", "label": "loop" },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "n" },
+          "cmp": "<=",
+          "right": { "kind": "lit", "value": 0 },
+          "targetLabel": "done"
+        },
+        {
+          "op": "ADD",
+          "target": "sum",
+          "left": { "kind": "var", "name": "sum" },
+          "right": { "kind": "var", "name": "n" }
+        },
+        {
+          "op": "SUB",
+          "target": "n",
+          "left": { "kind": "var", "name": "n" },
+          "right": { "kind": "lit", "value": 1 }
+        },
+        { "op": "JUMP", "targetLabel": "loop" },
+        { "op": "LABEL", "label": "done" },
+        { "op": "OUT", "value": { "kind": "var", "name": "sum" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 110,
+  "reviewStatus": "draft"
+}

@@ -1,0 +1,118 @@
+{
+  "id": "w5-05-pass-threshold",
+  "workshop": "algoritm",
+  "orderNumber": 5,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "build",
+  "title": "Ostonadan oʻtish sharti",
+  "customerName": "Murabbiy Sardor",
+  "goalKey": "algoritm.w5-05-pass-threshold.goal",
+  "goalText": "Agar ball 10 yoki undan katta boʻlsa 1 chiqar, aks holda 0 chiqar.",
+  "parts": ["SET", "LABEL", "JUMP_IF", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [12] }, "expected": { "outputs": [1] } },
+      { "id": "v2", "input": { "inputs": [7] }, "expected": { "outputs": [0] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [10] }, "expected": { "outputs": [1] } },
+      { "id": "h2", "input": { "inputs": [9] }, "expected": { "outputs": [0] } }
+    ]
+  },
+  "par": { "instructions": 6, "ticks": 5 },
+  "hints": [
+    "ball = 10 boʻlganda ham 1 chiqishi kerak, shuning uchun >= shartini tanla.",
+    "JUMP_IF ball >= 10 rost boʻlsa ok yorligʻiga sakrat.",
+    "Har ikkala tarmoq oxirida HLT qoʻyishni unutma, aks holda ikkala OUT ham ishlaydi."
+  ],
+  "feedbackRules": [
+    {
+      "id": "boundary-off",
+      "pattern": "off_by_one",
+      "misconception": "Used strict > 10 instead of >= 10 boundary",
+      "messageKey": "feedback.boundaryEq"
+    },
+    {
+      "id": "fallthrough",
+      "pattern": "always",
+      "misconception": "Missing HLT caused fallthrough into second branch",
+      "messageKey": "feedback.branchFallthrough"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.boundaryEq": "Chegara 10 ni ham kiritishi kerak: > oʻrniga >= shartidan foydalan.",
+    "feedback.branchFallthrough": "Birinchi tarmoq oxiriga HLT qoʻy, aks holda mashina keyingi qatorga ham kirib ketadi."
+  },
+  "workedExample": {
+    "title": "Ikki yoʻlli shart",
+    "steps": [
+      {
+        "instructionText": "SET ball = kirish · JUMP_IF ball >= 10 -> ok",
+        "note": "Shart rost boʻlsa mashina darhol ok yorligʻiga sakraydi.",
+        "vars": { "ball": 12 }
+      },
+      {
+        "instructionText": "OUT 0 · HLT (yolgʻon yoʻli)",
+        "note": "Ball 10 dan kichik boʻlsa sakrash boʻlmaydi va 0 chiqadi.",
+        "vars": { "ball": 7 },
+        "outputs": [0]
+      },
+      {
+        "instructionText": "LABEL ok · OUT 1 · HLT",
+        "note": "Sakrash shu yerga tushganda 1 chiqadi.",
+        "vars": { "ball": 12 },
+        "outputs": [1]
+      }
+    ]
+  },
+  "predictPrompt": {
+    "question": "Agar ball roppa-rosa 10 ga teng boʻlsa, JUMP_IF ball >= 10 qayerga boradi?",
+    "options": ["ok yorligʻiga sakraydi", "Keyingi qatorga oʻtadi", "Xato beradi"],
+    "correctIndex": 0,
+    "explanation": "Katta yoki teng (>=) belgisi 10 ning oʻzini ham rost deb hisoblaydi."
+  },
+  "reflectQuestion": {
+    "question": "Nega OUT 0 dan keyin alohida HLT yozish shart?",
+    "options": [
+      "Mashina pastdagi OUT 1 qatorini ham bajarib yubormasligi uchun",
+      "Chunki 0 chiqarish uchun ikkita HLT kerak",
+      "LABEL buyrugʻi HLT siz oʻqilmaydi"
+    ],
+    "correctIndex": 0,
+    "explanation": "Har bir tarmoq HLT bilan yopilmasa, ijro pastdagi qatorga oʻtib ketadi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "ball" },
+          "cmp": ">=",
+          "right": { "kind": "lit", "value": 10 },
+          "targetLabel": "ok"
+        },
+        { "op": "OUT", "value": { "kind": "lit", "value": 0 } },
+        { "op": "HLT" },
+        { "op": "LABEL", "label": "ok" },
+        { "op": "OUT", "value": { "kind": "lit", "value": 1 } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 90,
+  "reviewStatus": "draft"
+}

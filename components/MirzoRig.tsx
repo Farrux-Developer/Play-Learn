@@ -233,16 +233,6 @@ export const MirzoRig = forwardRef<MirzoController, MirzoRigProps>(function Mirz
         animation: breatheActive ? 'ws-mirzo-breathe 4s ease-in-out infinite' : undefined,
       }}
     >
-      <style>{`
-        @keyframes ws-mirzo-breathe {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(1.015); }
-        }
-        @keyframes ws-mirzo-sway {
-          0%, 100% { transform: rotate(-1deg); }
-          50% { transform: rotate(1deg); }
-        }
-      `}</style>
 
       {/* Subtle shadow on niche floor */}
       <ellipse cx="100" cy="196" rx="52" ry="8" fill="#07264B" fillOpacity="0.45" />

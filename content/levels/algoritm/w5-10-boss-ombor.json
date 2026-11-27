@@ -1,0 +1,117 @@
+{
+  "id": "w5-10-boss-ombor",
+  "workshop": "algoritm",
+  "orderNumber": 10,
+  "skillIds": ["algo-sequence", "algo-branch-loop"],
+  "kind": "boss",
+  "title": "Imtihon: kattasigacha yigʻindi hisoblash",
+  "customerName": "Bosh usta Mirzo",
+  "goalKey": "algoritm.w5-10-boss-ombor.goal",
+  "goalText": "Ikki son (a va b) kiradi. Kattasini top va 1 dan oʻsha songacha yigʻindini hisobla!",
+  "parts": ["SET", "ADD", "SUB", "LABEL", "JUMP", "JUMP_IF", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [3, 5] }, "expected": { "outputs": [15] } },
+      { "id": "v2", "input": { "inputs": [4, 2] }, "expected": { "outputs": [10] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [10, 6] }, "expected": { "outputs": [55] } },
+      { "id": "h2", "input": { "inputs": [1, 1] }, "expected": { "outputs": [1] } },
+      { "id": "h3", "input": { "inputs": [7, 9] }, "expected": { "outputs": [45] } }
+    ]
+  },
+  "par": { "instructions": 12, "ticks": 70 },
+  "hints": [
+    "Imtihonda maslahatlar berkitilgan — shart va siklni birlashtir.",
+    "Avval n ga a ni yoz, agar b > a boʻlsa n = b qilib yangila.",
+    "Keyin 1 dan n gacha sikl bilan yigʻindini hisobla."
+  ],
+  "hintsDisabled": true,
+  "feedbackRules": [
+    {
+      "id": "boss-infinite",
+      "pattern": "error:tick_limit_exceeded",
+      "misconception": "Loop did not decrement n",
+      "messageKey": "feedback.bossLoop"
+    },
+    {
+      "id": "boss-general",
+      "pattern": "always",
+      "misconception": "Combination of max(a, b) selection and 1..n sum failed",
+      "messageKey": "feedback.bossGeneral"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.bossLoop": "Sikl toʻxtamadi: n har qadamda 1 ga kamayishini tekshir.",
+    "feedback.bossGeneral": "Avval ikki sondan kattasini n ga saqla, soʻng 1 dan n gacha qoʻshib chiq."
+  },
+  "reflectQuestion": {
+    "question": "Bu imtihon masalasida qaysi ikki gʻoya birlashdi?",
+    "options": [
+      "Shart bilan kattasini tanlash va sikl bilan yigʻindi yigʻish",
+      "Faqat roʻyxat yaratish",
+      "Faqat ikki sonni ayirish"
+    ],
+    "correctIndex": 0,
+    "explanation": "Avval tarmoqlanish katta chegarani aniqladi, keyin sikl 1 dan shu chegaragacha hisobladi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } },
+        { "op": "SET", "target": "n", "value": { "kind": "var", "name": "a" } },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "a" },
+          "cmp": ">=",
+          "right": { "kind": "var", "name": "b" },
+          "targetLabel": "tayyor"
+        },
+        { "op": "SET", "target": "n", "value": { "kind": "var", "name": "b" } },
+        { "op": "LABEL", "label": "tayyor" },
+        { "op": "SET", "target": "sum", "value": { "kind": "lit", "value": 0 } },
+        { "op": "LABEL", "label": "loop" },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "n" },
+          "cmp": "<=",
+          "right": { "kind": "lit", "value": 0 },
+          "targetLabel": "done"
+        },
+        {
+          "op": "ADD",
+          "target": "sum",
+          "left": { "kind": "var", "name": "sum" },
+          "right": { "kind": "var", "name": "n" }
+        },
+        {
+          "op": "SUB",
+          "target": "n",
+          "left": { "kind": "var", "name": "n" },
+          "right": { "kind": "lit", "value": 1 }
+        },
+        { "op": "JUMP", "targetLabel": "loop" },
+        { "op": "LABEL", "label": "done" },
+        { "op": "OUT", "value": { "kind": "var", "name": "sum" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 180,
+  "reviewStatus": "draft"
+}

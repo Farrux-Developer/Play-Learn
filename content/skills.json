@@ -1,0 +1,115 @@
+[
+  {
+    "id": "ipo-flow",
+    "workshop": "kompyuter-ichida",
+    "title": "Kiritish, qayta ishlash va saqlash",
+    "prerequisites": [],
+    "misconceptions": ["Protsessor fayllarni doimiy saqlaydi deb oʻylash"],
+    "levelIds": [],
+    "lessonSlug": "kompyuter-ichida-ipo",
+    "curriculumRef": null
+  },
+  {
+    "id": "binary-lamps",
+    "workshop": "bit-bayt",
+    "title": "Bit chiroqlari va ikkilik sanoq",
+    "prerequisites": ["ipo-flow"],
+    "misconceptions": ["Ikkilik son xonalarini chapdan oʻngga teskari oʻqish"],
+    "levelIds": [],
+    "lessonSlug": "bit-va-bayt-asoslari",
+    "curriculumRef": null
+  },
+  {
+    "id": "text-pixels",
+    "workshop": "matn-rasm",
+    "title": "Matn kodlash va piksel rasmlar",
+    "prerequisites": ["binary-lamps"],
+    "misconceptions": ["Kompyuter harflarni qogʻozdagi shakl sifatida saqlaydi deb oʻylash"],
+    "levelIds": [],
+    "lessonSlug": "matn-va-rasm-kodlash",
+    "curriculumRef": null
+  },
+  {
+    "id": "logic-gates",
+    "workshop": "mantiq",
+    "title": "VA, YOKI va EMAS darvozalari",
+    "prerequisites": ["binary-lamps"],
+    "misconceptions": ["YOKI darvozasi faqat bittasi rost boʻlganda ishlaydi deb oʻylash"],
+    "levelIds": [],
+    "lessonSlug": "mantiq-darvozalari",
+    "curriculumRef": null
+  },
+  {
+    "id": "algo-sequence",
+    "workshop": "algoritm",
+    "title": "Buyruqlar tartibi va oʻzgaruvchi quti",
+    "prerequisites": ["ipo-flow"],
+    "misconceptions": ["Tenglik belgisini matematik tenglama deb tushunish"],
+    "levelIds": [
+      "w5-01-seq-order",
+      "w5-var-add",
+      "w5-03-swap-trace",
+      "w5-04-discount-modify",
+      "w5-10-boss-ombor"
+    ],
+    "lessonSlug": "algoritm-ketma-ketlik",
+    "curriculumRef": null
+  },
+  {
+    "id": "algo-branch-loop",
+    "workshop": "algoritm",
+    "title": "Shart va sikl bilan boshqarish",
+    "prerequisites": ["algo-sequence", "logic-gates"],
+    "misconceptions": ["Sikl chegarasida bitta qadamga adashish"],
+    "levelIds": [
+      "w5-05-pass-threshold",
+      "w5-06-max-two",
+      "w5-loop-guard",
+      "w5-08-countdown-modify",
+      "w5-09-list-push-get",
+      "w5-10-boss-ombor"
+    ],
+    "lessonSlug": "shart-va-sikl",
+    "curriculumRef": null
+  },
+  {
+    "id": "cpu-fde",
+    "workshop": "protsessor",
+    "title": "Olish, tushunish va bajarish takti",
+    "prerequisites": ["algo-branch-loop", "logic-gates"],
+    "misconceptions": ["Xotiradagi maʼlumot va buyruqni bir-biridan ajratmaslik"],
+    "levelIds": [],
+    "lessonSlug": "protsessor-takt-sikli",
+    "curriculumRef": null
+  },
+  {
+    "id": "net-packets",
+    "workshop": "tarmoq",
+    "title": "Paketlar, manzillar va marshrut",
+    "prerequisites": ["text-pixels"],
+    "misconceptions": ["Veb-sahifa tarmoqdan yaxlit boʻlak boʻlib keladi deb oʻylash"],
+    "levelIds": [],
+    "lessonSlug": "tarmoq-paketlari",
+    "curriculumRef": null
+  },
+  {
+    "id": "safety-data-ai",
+    "workshop": "xavfsizlik-ai",
+    "title": "Xavfsiz parol, shifr va AI maʼlumotlari",
+    "prerequisites": ["net-packets"],
+    "misconceptions": ["AI hamma narsani inson kabi tushunadi deb oʻylash"],
+    "levelIds": [],
+    "lessonSlug": "xavfsizlik-va-ai",
+    "curriculumRef": null
+  },
+  {
+    "id": "capstone-computer",
+    "workshop": "kompyuter-yasa",
+    "title": "NAND dan mitti kompyutergacha",
+    "prerequisites": ["cpu-fde", "safety-data-ai"],
+    "misconceptions": ["Murakkab kompyuter oddiy darvozalardan yigʻilishini koʻrmaslik"],
+    "levelIds": [],
+    "lessonSlug": "kompyuter-yasa-loyihasi",
+    "curriculumRef": null
+  }
+]

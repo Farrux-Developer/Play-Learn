@@ -1,0 +1,89 @@
+{
+  "id": "w5-04-discount-modify",
+  "workshop": "algoritm",
+  "orderNumber": 4,
+  "skillIds": ["algo-sequence"],
+  "kind": "modify",
+  "title": "Chegirma hisoblagichga oʻzgartirish",
+  "customerName": "Sotuvchi Madina",
+  "goalKey": "algoritm.w5-04-discount-modify.goal",
+  "goalText": "Ishlayotgan dastur hozir narxga chegirma qoʻshyapti. Uni ayiradigan qilib oʻzgartir.",
+  "parts": ["SET", "SUB", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [100, 25] }, "expected": { "outputs": [75] } },
+      { "id": "v2", "input": { "inputs": [40, 10] }, "expected": { "outputs": [30] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [65, 65] }, "expected": { "outputs": [0] } },
+      { "id": "h2", "input": { "inputs": [250, 45] }, "expected": { "outputs": [205] } }
+    ]
+  },
+  "par": { "instructions": 5, "ticks": 5 },
+  "hints": [
+    "3-qatordagi ADD buyrugʻi narx va chegirmani qoʻshib yuboryapti.",
+    "Chegirmani ayirish uchun ADD oʻrniga SUB buyrugʻini tanla.",
+    "Chap tomonda narx, oʻng tomonda chegirma qutisi turishini tekshir."
+  ],
+  "feedbackRules": [
+    {
+      "id": "still-adding",
+      "pattern": "always",
+      "misconception": "Left ADD in place instead of replacing with SUB",
+      "messageKey": "feedback.stillAdding"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.stillAdding": "Hozirgi amal qoʻshish boʻlib qoldi — ADD ni SUB ga almashtir."
+  },
+  "reflectQuestion": {
+    "question": "Modify turidagi vazifada nima uchun tayyor dasturni oʻzgartirish tezroq?",
+    "options": [
+      "Kirish va chiqish qismi tayyor, faqat kerakli amal yangilanadi",
+      "SUB buyrugʻi HLT siz ishlaydi",
+      "Dasturni qaytadan yozish taqiqlangan"
+    ],
+    "correctIndex": 0,
+    "explanation": "Ishlayotgan qismlarni saqlab qolib, faqat maqsadga mos amalni almashtirish vaqtni tejaydi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "narx", "value": { "kind": "input" } },
+        { "op": "SET", "target": "chegirma", "value": { "kind": "input" } },
+        {
+          "op": "ADD",
+          "target": "jami",
+          "left": { "kind": "var", "name": "narx" },
+          "right": { "kind": "var", "name": "chegirma" }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "jami" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "narx", "value": { "kind": "input" } },
+        { "op": "SET", "target": "chegirma", "value": { "kind": "input" } },
+        {
+          "op": "SUB",
+          "target": "jami",
+          "left": { "kind": "var", "name": "narx" },
+          "right": { "kind": "var", "name": "chegirma" }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "jami" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 50,
+  "reviewStatus": "draft"
+}

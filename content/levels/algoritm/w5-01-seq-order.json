@@ -1,0 +1,128 @@
+{
+  "id": "w5-01-seq-order",
+  "workshop": "algoritm",
+  "orderNumber": 1,
+  "skillIds": ["algo-sequence"],
+  "kind": "arrange",
+  "title": "Buyurtmalar tartibi: ikkilash",
+  "customerName": "Novvoy Kamol",
+  "goalKey": "algoritm.w5-01-seq-order.goal",
+  "goalText": "Kelgan non sonini ikki barobarga oshirib ekranga chiqar.",
+  "parts": ["SET", "MUL", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [4] }, "expected": { "outputs": [8] } },
+      { "id": "v2", "input": { "inputs": [7] }, "expected": { "outputs": [14] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [15] }, "expected": { "outputs": [30] } },
+      { "id": "h2", "input": { "inputs": [0] }, "expected": { "outputs": [0] } }
+    ]
+  },
+  "par": { "instructions": 4, "ticks": 4 },
+  "hints": [
+    "Avval kiruvchi sonni qutiga joylashtirmasdan turib uni koʻpaytirib boʻlmaydi.",
+    "MUL buyrugʻi sonni 2 ga koʻpaytiradi, keyin OUT natijani chiqaradi.",
+    "Toʻgʻri tartib: SET -> MUL -> OUT -> HLT."
+  ],
+  "feedbackRules": [
+    {
+      "id": "empty-out",
+      "pattern": "empty_output",
+      "misconception": "Forgot OUT before HLT",
+      "messageKey": "feedback.missingOut"
+    },
+    {
+      "id": "undef-var",
+      "pattern": "error:undefined_variable",
+      "misconception": "Used variable before SET initialized it",
+      "messageKey": "feedback.useBeforeSet"
+    },
+    {
+      "id": "wrong-order",
+      "pattern": "always",
+      "misconception": "Order of instructions changed final value",
+      "messageKey": "feedback.wrongOrder"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.missingOut": "Qutida hisoblading, lekin OUT buyrugʻini oxiriga qoʻyishni unutding.",
+    "feedback.useBeforeSet": "Avval son qutisini SET bilan toʻldir, keyin MUL bilan koʻpaytir.",
+    "feedback.wrongOrder": "Buyruqlar tartibi muhim: avval ol, keyin koʻpaytir, soʻngra chiqar."
+  },
+  "workedExample": {
+    "title": "Mirzo qanday bajaradi?",
+    "steps": [
+      {
+        "instructionText": "SET son = kirish (4)",
+        "note": "Birinchi qadamda kirishdan 4 soni olinib, son qutisiga solinadi.",
+        "vars": { "son": 4 }
+      },
+      {
+        "instructionText": "MUL son = son * 2",
+        "note": "Qutidagi 4 ni 2 ga koʻpaytirib, yana son qutisiga yozamiz: endi 8.",
+        "vars": { "son": 8 }
+      },
+      {
+        "instructionText": "OUT son · HLT",
+        "note": "Natija 8 chiqariladi va mashina toʻxtaydi.",
+        "vars": { "son": 8 },
+        "outputs": [8]
+      }
+    ]
+  },
+  "predictPrompt": {
+    "question": "Agar kirish 5 boʻlsa, MUL qadamidan keyin son qutisida nima turadi?",
+    "options": ["5", "10", "7"],
+    "correctIndex": 1,
+    "explanation": "MUL sonni 2 ga koʻpaytirib, qutidagi qiymatni 10 ga yangilaydi."
+  },
+  "reflectQuestion": {
+    "question": "Nega OUT ni MUL dan oldin qoʻysak natija xato chiqadi?",
+    "options": [
+      "Chunki OUT eski qiymatni chiqarib yuboradi",
+      "Chunki HLT mashinani oʻchiradi",
+      "Chunki son faqat juft boʻlishi kerak"
+    ],
+    "correctIndex": 0,
+    "explanation": "Mashina buyruqlarni yuqoridan pastga bajaradi: avval hisoblash, keyin chiqarish kerak."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        {
+          "op": "MUL",
+          "target": "son",
+          "left": { "kind": "var", "name": "son" },
+          "right": { "kind": "lit", "value": 2 }
+        },
+        { "op": "SET", "target": "son", "value": { "kind": "input" } },
+        { "op": "HLT" },
+        { "op": "OUT", "value": { "kind": "var", "name": "son" } }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "son", "value": { "kind": "input" } },
+        {
+          "op": "MUL",
+          "target": "son",
+          "left": { "kind": "var", "name": "son" },
+          "right": { "kind": "lit", "value": 2 }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "son" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 55,
+  "reviewStatus": "draft"
+}

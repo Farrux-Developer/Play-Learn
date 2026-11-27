@@ -9,9 +9,9 @@
 
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
+import { PhMap } from '@/components/icons/SectionIcons';
 import {
   MechLockIcon,
-  PhMap,
   PhPlay,
   PinStarIcon,
   WorkshopTokenIcon,
@@ -179,12 +179,13 @@ export function XaritaSection({
             const unlocked =
               xp >= node.xpUnlock || unlockedWorkshops.includes(node.workshopId);
             const remaining = Math.max(0, node.xpUnlock - xp);
+            const nextNode = MAP_NODES[idx + 1];
             const isNewestUnlocked =
               unlocked &&
-              (idx === MAP_NODES.length - 1 ||
+              (!nextNode ||
                 !(
-                  xp >= MAP_NODES[idx + 1].xpUnlock ||
-                  unlockedWorkshops.includes(MAP_NODES[idx + 1].workshopId)
+                  xp >= nextNode.xpUnlock ||
+                  unlockedWorkshops.includes(nextNode.workshopId)
                 ));
 
             return (

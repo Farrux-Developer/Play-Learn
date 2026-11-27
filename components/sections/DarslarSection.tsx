@@ -12,8 +12,8 @@ import {
   DuppiChevronIcon,
   PhCheck,
   PhLessons,
-  PhPlay,
-} from '@/components/icons/WorkshopIcons';
+} from '@/components/icons/SectionIcons';
+import { PhPlay } from '@/components/icons/WorkshopIcons';
 import { MirzoRig } from '@/components/MirzoRig';
 import { ChoiceTile } from '@/components/ui/ChoiceTile';
 import { WorkshopCard } from '@/components/ui/WorkshopCard';
@@ -200,6 +200,7 @@ export function DarslarSection({
   }
 
   const activeLesson = LESSONS.find((l) => l.id === selectedId) ?? LESSONS[0];
+  if (!activeLesson) return null;
   const completedCount = completedLessons.length;
   const pct = completedCount / LESSONS.length;
   const ringR = 20;

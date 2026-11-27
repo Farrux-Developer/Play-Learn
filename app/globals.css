@@ -325,6 +325,16 @@
   to { transform: rotate(0deg); }
 }
 
+@keyframes ws-mirzo-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.015); }
+}
+
+@keyframes ws-mirzo-sway {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
 @keyframes ws-skeleton-glint {
   0% { transform: translateX(-100%); }
   60%, 100% { transform: translateX(100%); }
@@ -460,6 +470,40 @@ html[data-motion-paused="true"] *::after {
 
 html[data-lite="true"] .ws-paper-grain::before {
   display: none;
+}
+
+/* Signature chamfered panel clip utility */
+.ws-chamfer {
+  clip-path: polygon(
+    var(--chamfer-md) 0%,
+    calc(100% - var(--chamfer-md)) 0%,
+    100% var(--chamfer-md),
+    100% calc(100% - var(--chamfer-md)),
+    calc(100% - var(--chamfer-md)) 100%,
+    var(--chamfer-md) 100%,
+    0% calc(100% - var(--chamfer-md)),
+    0% var(--chamfer-md)
+  );
+}
+
+.ws-chamfer-sm {
+  clip-path: polygon(
+    var(--chamfer-sm) 0%,
+    calc(100% - var(--chamfer-sm)) 0%,
+    100% var(--chamfer-sm),
+    100% calc(100% - var(--chamfer-sm)),
+    calc(100% - var(--chamfer-sm)) 100%,
+    var(--chamfer-sm) 100%,
+    0% calc(100% - var(--chamfer-sm)),
+    0% var(--chamfer-sm)
+  );
+}
+
+/* Dyslexia-friendly reading mode: wider tracking, line height, and uncrowded spacing */
+html[data-dyslexia="true"] body {
+  letter-spacing: 0.035em;
+  word-spacing: 0.12em;
+  line-height: 1.85;
 }
 
 /* Below-fold rendering optimization */

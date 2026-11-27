@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { GearIcon } from '@/components/icons/WorkshopIcons';
+import { GearIcon } from '@/components/icons/SectionIcons';
 import { WorkshopCard } from '@/components/ui/WorkshopCard';
 import { PRINCIPLES } from '@/lib/data/workshop';
 import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';

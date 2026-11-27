@@ -1,0 +1,95 @@
+{
+  "id": "w5-03-swap-trace",
+  "workshop": "algoritm",
+  "orderNumber": 3,
+  "skillIds": ["algo-sequence"],
+  "kind": "predict",
+  "title": "Qutilar oʻrnini almashtirish",
+  "customerName": "Usta Dilshod",
+  "goalKey": "algoritm.w5-03-swap-trace.goal",
+  "goalText": "Dastur bajarilishini kuzatib, x va y qutilarida oxiri qaysi sonlar qolishini oldindan top.",
+  "parts": ["SET", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      {
+        "id": "v1",
+        "input": { "vars": { "x": 4, "y": 9 } },
+        "expected": { "outputs": [9, 4], "vars": { "x": 9, "y": 4 } }
+      }
+    ],
+    "hidden": [
+      {
+        "id": "h1",
+        "input": { "vars": { "x": 12, "y": 3 } },
+        "expected": { "outputs": [3, 12], "vars": { "x": 3, "y": 12 } }
+      }
+    ]
+  },
+  "par": { "instructions": 6, "ticks": 6 },
+  "hints": [
+    "temp qutisi x ning eski qiymatini vaqtincha asrab turadi.",
+    "SET x = y qadamidan keyin ikkala qutida ham vaqtincha y turadi.",
+    "Oxirida SET y = temp bilan eski x qiymati y ga oʻtadi."
+  ],
+  "feedbackRules": [
+    {
+      "id": "swap-overwrite",
+      "pattern": "always",
+      "misconception": "Confused variable assignment overwriting with equality",
+      "messageKey": "feedback.swapTrace"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.swapTrace": "1 takt bos tugmasi bilan har bir SET qadamini kuzat: x yozilganda eski qiymat temp da saqlanadi."
+  },
+  "predictPrompt": {
+    "question": "Boshida x = 4 va y = 9 boʻlsa, ushbu 6 ta qadamdan keyin ekranga nima chiqadi?",
+    "options": ["[4, 9]", "[9, 4]", "[9, 9]"],
+    "correctIndex": 1,
+    "explanation": "temp qutisi 4 ni saqlab turgani uchun x = 9 va y = 4 boʻlib almashadi."
+  },
+  "reflectQuestion": {
+    "question": "Agar temp qutisisiz toʻgʻridan-toʻgʻri SET x = y; SET y = x yozsak nima boʻlar edi?",
+    "options": [
+      "x ning eski qiymati yoʻqolib, ikkalasi ham y ga teng boʻlardi",
+      "Ikkalasi baribir almashardi",
+      "Kompyuter toʻxtab qolardi"
+    ],
+    "correctIndex": 0,
+    "explanation": "Yangi qiymat yozilganda qutidagi eski qiymat oʻchadi, shuning uchun vaqtinchalik temp quti kerak."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "initialVars": { "x": 4, "y": 9 },
+      "instructions": [
+        { "op": "SET", "target": "temp", "value": { "kind": "var", "name": "x" } },
+        { "op": "SET", "target": "x", "value": { "kind": "var", "name": "y" } },
+        { "op": "SET", "target": "y", "value": { "kind": "var", "name": "temp" } },
+        { "op": "OUT", "value": { "kind": "var", "name": "x" } },
+        { "op": "OUT", "value": { "kind": "var", "name": "y" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "initialVars": { "x": 4, "y": 9 },
+      "instructions": [
+        { "op": "SET", "target": "temp", "value": { "kind": "var", "name": "x" } },
+        { "op": "SET", "target": "x", "value": { "kind": "var", "name": "y" } },
+        { "op": "SET", "target": "y", "value": { "kind": "var", "name": "temp" } },
+        { "op": "OUT", "value": { "kind": "var", "name": "x" } },
+        { "op": "OUT", "value": { "kind": "var", "name": "y" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 65,
+  "reviewStatus": "draft"
+}

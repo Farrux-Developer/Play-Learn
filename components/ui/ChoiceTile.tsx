@@ -9,7 +9,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { PhWarn } from '@/components/icons/WorkshopIcons';
+import { PhWarn } from '@/components/icons/SectionIcons';
 import { ROUGH_PATHS } from '@/lib/motion/roughPaths';
 
 export type ChoiceState = 'idle' | 'selected' | 'correct' | 'wrong';

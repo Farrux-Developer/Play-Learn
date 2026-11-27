@@ -10,10 +10,8 @@
  */
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useEffect, useRef, useState } from 'react';
-import { Switch } from '@base-ui/react/switch';
-import { motion } from 'motion/react';
-import { GearTrain } from '@/components/GearTrain';
 import {
   EmberIcon,
   MechLockIcon,
@@ -27,12 +25,19 @@ import {
 } from '@/components/icons/WorkshopIcons';
 import { MirzoRig } from '@/components/MirzoRig';
 import { XpFlask } from '@/components/XpFlask';
-import { MACHINE_TICKS, WORKSHOPS } from '@/lib/data/workshop';
-import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
+import { MACHINE_TICKS, WORKSHOP_META } from '@/lib/data/heroMeta';
+import { HERO_STRINGS } from '@/lib/engine/heroStrings';
 import type { MirzoController, MirzoMood } from '@/lib/engine/mirzo';
 import type { WorkshopId } from '@/lib/engine/store';
 import { motionCore, type QualityTier } from '@/lib/motion/core';
-import { ROUGH_PATHS } from '@/lib/motion/roughPaths';
+
+const GearTrain = dynamic(
+  () => import('@/components/GearTrain').then((m) => m.GearTrain),
+  { ssr: true }
+);
+
+const HUD_FRAME_PATH =
+  'M23.3 7.5 C110.7 8.2, 196.4 9.1, 456.2 7.5 M455.7 8.2 C460.0 11.7, 466.3 16.6, 472.8 24.8 M471.6 24.1 C471.5 216.1, 471.8 407.6, 472.1 596.4 M471.3 595.2 C466.5 601.6, 463.5 604.9, 456.1 611.7 M455.4 612.4 C344.9 613.4, 232.6 612.4, 23.7 612.4 M23.2 613.3 C16.9 605.9, 12.2 600.5, 8.6 597.0 M7.9 595.5 C8.4 455.8, 8.2 315.0, 7.7 23.8 M8.2 25.3 C12.9 18.8, 16.4 13.9, 23.3 8.7';
 
 interface WorkshopHudProps {
   level: number;
@@ -231,7 +236,7 @@ export function WorkshopHud({
 
   const isTyping = typedLen < speechText.length && subtitlesEnabled;
   const currentTick = MACHINE_TICKS[machineTick % MACHINE_TICKS.length];
-  const t = WORKSHOP_STRINGS;
+  const t = HERO_STRINGS;
 
   return (
     <div
@@ -263,7 +268,7 @@ export function WorkshopHud({
       >
         <path
           ref={chalkFrameRef}
-          d={ROUGH_PATHS.hudFrame}
+          d={HUD_FRAME_PATH}
           fill="none"
           stroke="#EAF2FF"
           strokeOpacity="0.45"
@@ -355,7 +360,7 @@ export function WorkshopHud({
         <button
           type="button"
           onClick={() => setTypedLen(speechText.length)}
-          title={isTyping ? t.reviewStrings.skipTyping : undefined}
+          title={isTyping ? t.header.skipTyping : undefined}
           className="relative z-10 mt-1 w-full rounded-[14px] border-2 border-[var(--line-strong)] bg-[#11437D] px-3.5 py-2.5 text-left text-[15px] font-medium text-[#EAF2FF] shadow-[var(--sh-2)]"
         >
           <span
@@ -380,7 +385,7 @@ export function WorkshopHud({
               <span>{t.hud.machineTitle}</span>
             </p>
             <code className="mt-0.5 block text-[13.5px] font-medium text-[#FAAD14]">
-              {currentTick.code} <span className="text-[#B6CCE8]">|</span> ball: {currentTick.boxX}
+              {currentTick?.code ?? ''} <span className="text-[#B6CCE8]">|</span> ball: {currentTick?.boxX ?? 0}
             </code>
           </div>
           <button
@@ -393,7 +398,7 @@ export function WorkshopHud({
         </div>
 
         <div className="grid grid-cols-1 gap-2 rounded-[14px] border border-[var(--line)] bg-[var(--surface-inset)] p-2 min-[420px]:grid-cols-3">
-          {WORKSHOPS.map((ws) => {
+          {WORKSHOP_META.map((ws) => {
             const unlocked = unlockedWorkshops.includes(ws.id);
             return (
               <button
@@ -419,11 +424,13 @@ export function WorkshopHud({
         </div>
       </div>
 
-      {/* A09 Base UI Switch primitives with LED & spring thumb */}
+      {/* Accessible Switch buttons with LED & CSS spring thumb */}
       <div className="relative z-10 mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        <Switch.Root
-          checked={soundEnabled}
-          onCheckedChange={onToggleSound}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={soundEnabled}
+          onClick={onToggleSound}
           aria-label={soundEnabled ? t.hud.soundOn : t.hud.soundOff}
           className="flex min-h-[46px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold text-[#EAF2FF] active:scale-[0.96] transition-transform duration-100"
         >
@@ -434,26 +441,20 @@ export function WorkshopHud({
           <span className="inline-flex shrink-0 items-center gap-1.5">
             <ToggleLedIcon lit={ledSoundLit} size={11} />
             <span className="relative inline-flex h-5 w-8 items-center rounded-full border border-[var(--line-strong)] bg-[#07264B] p-0.5">
-              <Switch.Thumb className="block">
-                <motion.span
-                  layout
-                  transition={
-                    motionPaused
-                      ? { duration: 0.1 }
-                      : { type: 'spring', stiffness: 520, damping: 30 }
-                  }
-                  className={`block h-3.5 w-3.5 rounded-full ${
-                    soundEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
-                  }`}
-                />
-              </Switch.Thumb>
+              <span
+                className={`block h-3.5 w-3.5 rounded-full transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                  soundEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
+                }`}
+              />
             </span>
           </span>
-        </Switch.Root>
+        </button>
 
-        <Switch.Root
-          checked={subtitlesEnabled}
-          onCheckedChange={onToggleSubtitles}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={subtitlesEnabled}
+          onClick={onToggleSubtitles}
           aria-label={subtitlesEnabled ? t.hud.subtitlesOn : t.hud.subtitlesOff}
           className="flex min-h-[46px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border-2 border-[var(--line)] bg-[var(--surface-inset)] px-3 py-2 text-left text-[14px] font-bold text-[#EAF2FF] active:scale-[0.96] transition-transform duration-100"
         >
@@ -464,22 +465,14 @@ export function WorkshopHud({
           <span className="inline-flex shrink-0 items-center gap-1.5">
             <ToggleLedIcon lit={ledSubLit} size={11} />
             <span className="relative inline-flex h-5 w-8 items-center rounded-full border border-[var(--line-strong)] bg-[#07264B] p-0.5">
-              <Switch.Thumb className="block">
-                <motion.span
-                  layout
-                  transition={
-                    motionPaused
-                      ? { duration: 0.1 }
-                      : { type: 'spring', stiffness: 520, damping: 30 }
-                  }
-                  className={`block h-3.5 w-3.5 rounded-full ${
-                    subtitlesEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
-                  }`}
-                />
-              </Switch.Thumb>
+              <span
+                className={`block h-3.5 w-3.5 rounded-full transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                  subtitlesEnabled ? 'translate-x-3 bg-[#19B7A6]' : 'translate-x-0 bg-[#B6CCE8]'
+                }`}
+              />
             </span>
           </span>
-        </Switch.Root>
+        </button>
       </div>
     </div>
   );

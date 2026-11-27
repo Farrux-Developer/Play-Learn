@@ -7,41 +7,130 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import {
-  Play,
-  BookOpenText,
-  Compass,
-  Wrench,
-  SpeakerHigh,
-  SpeakerSlash,
-  ClosedCaptioning,
-  CheckCircle,
-  WarningCircle,
-  Pause,
-  Lightning,
-  ListChecks,
-  Cpu,
-  List,
-  X,
-} from '@phosphor-icons/react';
+interface PhosphorCompatProps {
+  size?: number;
+  weight?: 'regular' | 'bold' | 'fill' | 'duotone';
+  className?: string;
+}
 
-export {
-  Play as PhPlay,
-  BookOpenText as PhLessons,
-  Compass as PhMap,
-  Wrench as PhWorkshop,
-  SpeakerHigh as PhSoundOn,
-  SpeakerSlash as PhSoundOff,
-  ClosedCaptioning as PhSubtitles,
-  CheckCircle as PhCheck,
-  WarningCircle as PhWarn,
-  Pause as PhPause,
-  Lightning as PhLightning,
-  ListChecks as PhChecklist,
-  Cpu as PhMachine,
-  List as PhMenu,
-  X as PhClose,
-};
+function IconBase({
+  size = 20,
+  className = '',
+  children,
+}: {
+  size?: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      {children}
+    </svg>
+  );
+}
+
+export function PhPlay({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const filled = weight === 'fill';
+  return (
+    <IconBase size={size} className={className}>
+      <path
+        d="M7 5.2L19 12L7 18.8V5.2Z"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth={weight === 'bold' ? 2.2 : 1.8}
+        strokeLinejoin="round"
+      />
+    </IconBase>
+  );
+}
+
+
+export function PhSoundOn({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <path d="M4 9.5H7.8L12.5 5.5V18.5L7.8 14.5H4V9.5Z" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth={sw} strokeLinejoin="round" />
+      <path d="M16 9A4.5 4.5 0 0 1 16 15M18.6 6.5A8 8 0 0 1 18.6 17.5" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
+
+export function PhSoundOff({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <path d="M4 9.5H7.8L12.5 5.5V18.5L7.8 14.5H4V9.5Z" stroke="currentColor" strokeWidth={sw} strokeLinejoin="round" />
+      <path d="M16 9.5L20.5 14M20.5 9.5L16 14" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
+
+export function PhSubtitles({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" strokeWidth={sw} />
+      <path d="M6.5 11.5H11M13.5 11.5H17.5M6.5 15H13.5M15.5 15H17.5" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
+
+
+export function PhPause({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <rect x="6.5" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth={sw} />
+      <rect x="13.7" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth={sw} />
+    </IconBase>
+  );
+}
+
+
+export function PhChecklist({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <path d="M4.5 7.5L6.2 9.2L9.2 6.2M4.5 15.5L6.2 17.2L9.2 14.2M12 7.8H19.5M12 15.8H19.5" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+    </IconBase>
+  );
+}
+
+export function PhMachine({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="2" stroke="currentColor" strokeWidth={sw} />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="0.8" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth={1.5} />
+      <path d="M9 3V6M15 3V6M9 18V21M15 18V21M3 9H6M3 15H6M18 9H21M18 15H21" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
+
+export function PhMenu({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
+
+export function PhClose({ size = 20, weight = 'regular', className = '' }: PhosphorCompatProps) {
+  const sw = weight === 'bold' ? 2.2 : 1.8;
+  return (
+    <IconBase size={size} className={className}>
+      <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" />
+    </IconBase>
+  );
+}
 
 interface SvgProps {
   className?: string;
@@ -153,46 +242,6 @@ export function PinStarIcon({ size = 32, className = '' }: SvgProps) {
   );
 }
 
-/** 3. Mechanical workshop gear */
-export function GearIcon({ size = 28, className = '' }: SvgProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <path
-        d="M14 2.5H18L18.9 5.8C19.8 6.1 20.6 6.4 21.4 6.9L24.3 5.2L27.1 8L25.4 10.9C25.9 11.7 26.2 12.5 26.5 13.4L29.8 14.3V18.3L26.5 19.2C26.2 20.1 25.9 20.9 25.4 21.7L27.1 24.6L24.3 27.4L21.4 25.7C20.6 26.2 19.8 26.5 18.9 26.8L18 30.1H14L13.1 26.8C12.2 26.5 11.4 26.2 10.6 25.7L7.7 27.4L4.9 24.6L6.6 21.7C6.1 20.9 5.8 20.1 5.5 19.2L2.2 18.3V14.3L5.5 13.4C5.8 12.5 6.1 11.7 6.6 10.9L4.9 8L7.7 5.2L10.6 6.9C11.4 6.4 12.2 6.1 13.1 5.8L14 2.5Z"
-        fill="currentColor"
-        fillOpacity="0.16"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <circle cx="16" cy="16.3" r="4.5" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
-/** A20: Interlocked rotating gear loader (CSS linear infinite) */
-export function GearLoader({ label }: { label?: string }) {
-  return (
-    <div className="inline-flex items-center gap-2.5 text-[14px] font-semibold text-[var(--on-surface-muted)]">
-      <span className="inline-flex items-center" aria-hidden="true">
-        <span className="ws-gear-spin inline-block text-[var(--accent)]">
-          <GearIcon size={24} />
-        </span>
-        <span className="ws-gear-spin--reverse -ml-1.5 mt-2 inline-block text-[var(--ok)]">
-          <GearIcon size={18} />
-        </span>
-      </span>
-      {label ? <span>{label}</span> : null}
-    </div>
-  );
-}
 
 /** 4. Graduated XP flask glyph */
 export function FlaskIcon({ size = 20, className = '' }: SvgProps) {
@@ -279,34 +328,6 @@ export function WorkshopTokenIcon({
   );
 }
 
-/** 7. Uzbek duppi embroidery chevron divider/marker */
-export function DuppiChevronIcon({ size = 18, className = '' }: SvgProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <path
-        d="M4 15L12 7L20 15"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8 18L12 14L16 18"
-        stroke="#19B7A6"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** 8. A14 Mechanical lock with lifting shackle state */
 export function MechLockIcon({

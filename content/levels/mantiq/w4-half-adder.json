@@ -1,0 +1,56 @@
+{
+  "id": "w4-half-adder",
+  "workshop": "mantiq",
+  "skillIds": ["logic-gates"],
+  "kind": "build",
+  "title": "Yarim qoʻshuvchi darvoza zanjiri",
+  "goalKey": "mantiq.w4-half-adder.goal",
+  "parts": ["XOR", "AND"],
+  "tests": {
+    "visible": [
+      { "id": "t00", "input": { "A": false, "B": false }, "expected": { "S": false, "C": false } },
+      { "id": "t01", "input": { "A": false, "B": true }, "expected": { "S": true, "C": false } }
+    ],
+    "hidden": [
+      { "id": "t10", "input": { "A": true, "B": false }, "expected": { "S": true, "C": false } },
+      { "id": "t11", "input": { "A": true, "B": true }, "expected": { "S": false, "C": true } }
+    ]
+  },
+  "par": { "instructions": 2, "ticks": 6 },
+  "hints": [
+    "Ikkita 1 qoʻshilganda natija 10 boʻladi: oʻng bit 0, koʻchirish 1.",
+    "Koʻchirish biti C faqat ikkala kirish rost boʻlganda yonadi (AND).",
+    "Yigʻindi biti S uchun XOR darvozasidan foydalan."
+  ],
+  "feedbackRules": [
+    {
+      "id": "cycle",
+      "pattern": "error:combinational_cycle",
+      "misconception": "Connected gate output back into its own input",
+      "messageKey": "feedback.circuitCycle"
+    }
+  ],
+  "referenceSolution": {
+    "engine": "circuit",
+    "circuit": {
+      "nodes": [
+        { "id": "inA", "kind": "INPUT", "name": "A" },
+        { "id": "inB", "kind": "INPUT", "name": "B" },
+        { "id": "gXor", "kind": "XOR" },
+        { "id": "gAnd", "kind": "AND" },
+        { "id": "outS", "kind": "OUTPUT", "name": "S" },
+        { "id": "outC", "kind": "OUTPUT", "name": "C" }
+      ],
+      "wires": [
+        { "from": "inA", "to": "gXor", "toPin": 0 },
+        { "from": "inB", "to": "gXor", "toPin": 1 },
+        { "from": "inA", "to": "gAnd", "toPin": 0 },
+        { "from": "inB", "to": "gAnd", "toPin": 1 },
+        { "from": "gXor", "to": "outS" },
+        { "from": "gAnd", "to": "outC" }
+      ]
+    }
+  },
+  "estimatedSeconds": 95,
+  "reviewStatus": "draft"
+}

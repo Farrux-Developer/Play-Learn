@@ -42,6 +42,7 @@ function findShortestPath(nodes: GraphNode[], start: number, target: number): nu
   while (queue.length > 0) {
     const path = queue.shift()!;
     const last = path[path.length - 1];
+    if (last === undefined) continue;
     for (const nb of nodes[last]?.neighbors ?? []) {
       if (nb === target) return [...path, nb];
       if (!visited.has(nb) && path.length < 5) {
@@ -52,6 +53,8 @@ function findShortestPath(nodes: GraphNode[], start: number, target: number): nu
   }
   return [start, ...(nodes[start]?.neighbors.slice(0, 1) ?? [])];
 }
+
+const sharedNoise2D = createNoise2D();
 
 export function NetworkBackdrop({
   surfaceMode,
@@ -71,7 +74,7 @@ export function NetworkBackdrop({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const noise2D = createNoise2D();
+    const noise2D = sharedNoise2D;
     let width = 0;
     let height = 0;
     let nodes: GraphNode[] = [];
@@ -107,11 +110,15 @@ export function NetworkBackdrop({
         }
       }
       for (let i = 0; i < list.length; i += 1) {
+        const nodeI = list[i];
+        if (!nodeI) continue;
         for (let j = i + 1; j < list.length; j += 1) {
-          const dist = Math.hypot(list[i].x - list[j].x, list[i].y - list[j].y);
+          const nodeJ = list[j];
+          if (!nodeJ) continue;
+          const dist = Math.hypot(nodeI.x - nodeJ.x, nodeI.y - nodeJ.y);
           if (dist < (width < 768 ? 160 : 210)) {
-            list[i].neighbors.push(j);
-            list[j].neighbors.push(i);
+            nodeI.neighbors.push(j);
+            nodeJ.neighbors.push(i);
           }
         }
       }
@@ -143,6 +150,7 @@ export function NetworkBackdrop({
         const t = timeSec * 0.05;
         for (let i = 0; i < nodes.length; i += 1) {
           const n = nodes[i];
+          if (!n) continue;
           n.x = n.baseX + noise2D(i * 0.37, t) * 1.5;
           n.y = n.baseY + noise2D(i * 0.37 + 19, t) * 1.5;
         }
@@ -152,9 +160,11 @@ export function NetworkBackdrop({
 
       for (let i = 0; i < nodes.length; i += 1) {
         const a = nodes[i];
+        if (!a) continue;
         for (const j of a.neighbors) {
           if (j <= i || j >= nodes.length) continue;
           const b = nodes[j];
+          if (!b) continue;
           const midX = (a.x + b.x) / 2;
           const midY = (a.y + b.y) / 2;
           if (isMaskedZone(midX, midY)) continue;
@@ -172,7 +182,7 @@ export function NetworkBackdrop({
 
       for (let i = 0; i < nodes.length; i += 1) {
         const n = nodes[i];
-        if (isMaskedZone(n.x, n.y)) continue;
+        if (!n || isMaskedZone(n.x, n.y)) continue;
         const dist = Math.hypot(n.x - px, n.y - py);
         const boost = ptr.isTouch ? 0 : Math.max(0, 1 - dist / 150);
         ctx.fillStyle = `rgba(${baseRgb}, ${(0.14 + boost * 0.4).toFixed(3)})`;
@@ -184,8 +194,10 @@ export function NetworkBackdrop({
       // Shortest-path packets with trailing comet tail
       const remaining: PathPacket[] = [];
       for (const pkt of packetsRef.current) {
-        const fromNode = nodes[pkt.path[pkt.segIdx]];
-        const toNode = nodes[pkt.path[pkt.segIdx + 1]];
+        const fromIdx = pkt.path[pkt.segIdx];
+        const toIdx = pkt.path[pkt.segIdx + 1];
+        const fromNode = fromIdx !== undefined ? nodes[fromIdx] : undefined;
+        const toNode = toIdx !== undefined ? nodes[toIdx] : undefined;
         if (!fromNode || !toNode) continue;
 
         const step = deltaMs / Math.max(180, pkt.durationMs);
@@ -196,8 +208,11 @@ export function NetworkBackdrop({
           nextT = 0;
         }
         if (nextSeg < pkt.path.length - 1) {
-          const a = nodes[pkt.path[nextSeg]];
-          const b = nodes[pkt.path[nextSeg + 1]];
+          const nextFromIdx = pkt.path[nextSeg];
+          const nextToIdx = pkt.path[nextSeg + 1];
+          const a = nextFromIdx !== undefined ? nodes[nextFromIdx] : undefined;
+          const b = nextToIdx !== undefined ? nodes[nextToIdx] : undefined;
+          if (!a || !b) continue;
           // ease-in-out
           const e = nextT < 0.5 ? 2 * nextT * nextT : 1 - Math.pow(-2 * nextT + 2, 2) / 2;
           const x = a.x + (b.x - a.x) * e;
@@ -229,8 +244,9 @@ export function NetworkBackdrop({
       let startIdx = -1;
       let bestDist = 90;
       for (let i = 0; i < nodes.length; i += 1) {
-        if (isMaskedZone(nodes[i].x, nodes[i].y)) continue;
-        const d = Math.hypot(nodes[i].x - e.clientX, nodes[i].y - e.clientY);
+        const node = nodes[i];
+        if (!node || isMaskedZone(node.x, node.y)) continue;
+        const d = Math.hypot(node.x - e.clientX, node.y - e.clientY);
         if (d < bestDist) {
           bestDist = d;
           startIdx = i;

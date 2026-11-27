@@ -61,7 +61,7 @@ export function DevWorkshopPanel({
 
   const cycleTier = () => {
     const order: TierOverride[] = ['auto', 'high', 'mid', 'lite'];
-    const next = order[(order.indexOf(telemetry.tierOverride) + 1) % order.length];
+    const next = order[(order.indexOf(telemetry.tierOverride) + 1) % order.length] ?? 'auto';
     motionCore.setTierOverride(next);
   };
 
@@ -70,8 +70,8 @@ export function DevWorkshopPanel({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open dev animation harness"
-        className="fixed bottom-16 right-3 z-50 min-h-[40px] rounded-[10px] border-2 border-[#0F1E3A] bg-[#FFFDF7] px-2.5 py-1 text-[12px] font-extrabold text-[#0F1E3A] shadow-[0_6px_14px_-4px_rgba(15,30,58,0.22)] md:bottom-3"
+        title="Open dev animation harness"
+        className="fixed bottom-3 right-3 z-50 min-h-[40px] rounded-[10px] border-2 border-[#0F1E3A] bg-[#FFFDF7] px-2.5 py-1 text-[12px] font-extrabold text-[#0F1E3A] shadow-[0_6px_14px_-4px_rgba(15,30,58,0.22)]"
       >
         DEV · {telemetry.tier} · {telemetry.fps}fps
       </button>

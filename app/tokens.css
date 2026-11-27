@@ -23,12 +23,33 @@
     --c-coral: #E4572E;
     --c-coral-depth: #A81700;
 
-    /* Hierarchy radius scale (8 / 14 / 22 / 32 / pill) */
+    /* Spacing scale (4px grid) */
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.25rem;
+    --sp-6: 1.5rem;
+    --sp-8: 2rem;
+    --sp-10: 2.5rem;
+    --sp-12: 3rem;
+
+    /* Hierarchy radius scale & blueprint chamfers */
     --r-chip: 8px;
     --r-card: 14px;
     --r-panel: 22px;
     --r-sheet: 32px;
     --r-pill: 9999px;
+    --chamfer-sm: 10px;
+    --chamfer-md: 16px;
+    --chamfer-lg: 24px;
+
+    /* Z-index layers */
+    --z-base: 1;
+    --z-sticky: 30;
+    --z-header: 40;
+    --z-modal: 50;
+    --z-toast: 60;
 
     /* Fluid typography scale */
     --text-micro: clamp(0.875rem, 0.85rem + 0.12vw, 0.9375rem);
@@ -74,8 +95,14 @@
     --reward-ink: #A55D00;
     --ok: var(--c-glaze);
     --ok-ink: #007667;
+    --warning: var(--c-saffron);
+    --warning-ink: #A95100;
+    --danger: var(--c-coral);
+    --danger-ink: #C43803;
     --warn: var(--c-coral);
     --warn-ink: #C43803;
+    --info: var(--c-cobalt);
+    --info-ink: #0F4C81;
 
     /* 5 surface-tinted shadow levels on paper */
     --sh-1: 0 2px 0 oklch(23.5% 0.056 260 / 0.12);
@@ -102,8 +129,14 @@
     --reward-ink: #FAAD14;
     --ok: var(--c-glaze);
     --ok-ink: #55DECC;
+    --warning: var(--c-saffron);
+    --warning-ink: #FFB220;
+    --danger: var(--c-coral);
+    --danger-ink: #FFB58B;
     --warn: var(--c-coral);
     --warn-ink: #FFB58B;
+    --info: #66B3FF;
+    --info-ink: #83D0FF;
 
     /* 5 surface-tinted shadow levels on blueprint */
     --sh-1: 0 2px 0 oklch(16% 0.06 256 / 0.45);

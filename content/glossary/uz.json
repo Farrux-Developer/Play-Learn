@@ -1,0 +1,114 @@
+[
+  {
+    "slug": "protsessor",
+    "term": "Protsessor",
+    "shortDef": "Kompyuterning buyruqlarni ketma-ket bajaradigan bosh hisoblagichi. Har bir taktda bitta kichik amalni bajaradi.",
+    "example": "Masalan, 5 ga 3 ni qoʻshish buyrugʻini protsessor bajaradi.",
+    "workshop": "protsessor",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "xotira",
+    "term": "Xotira",
+    "shortDef": "Sonlar, matn va buyruqlar saqlanadigan raqamli javon. Har bir katakchaning oʻz manzili bor.",
+    "example": "Oʻyindagi ball qutisi tezkor xotira katakchasida turadi.",
+    "workshop": "kompyuter-ichida",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "bit",
+    "term": "Bit",
+    "shortDef": "Maʼlumotning eng kichik birligi. U faqat ikki holatdan birida boʻladi: 0 yoki 1.",
+    "example": "Yongan chiroq 1, oʻchgan chiroq esa 0 bitni bildiradi.",
+    "workshop": "bit-bayt",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "bayt",
+    "term": "Bayt",
+    "shortDef": "Bir joyga jamlangan 8 ta bit guruhi. Bitta bayt 0 dan 255 gacha boʻlgan sonni sigʻdiradi.",
+    "example": "Oddiy inglizcha harf koʻpincha 1 bayt joy egallaydi.",
+    "workshop": "bit-bayt",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "algoritm",
+    "term": "Algoritm",
+    "shortDef": "Maqsadga yetish uchun aniq tartibda yozilgan qadamlar roʻyxati.",
+    "example": "Choy damlash qadamlari ham oddiy algoritmga oʻxshaydi.",
+    "workshop": "algoritm",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "dastur",
+    "term": "Dastur",
+    "shortDef": "Kompyuter tushunadigan tilda yozilgan va ketma-ket bajariladigan algoritm.",
+    "example": "Mirzo mashinasi uchun terilgan buyruqlar zanjiri — bu kichik dastur.",
+    "workshop": "algoritm",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "ozgaruvchi",
+    "term": "Oʻzgaruvchi",
+    "shortDef": "Qiymati dastur davomida oʻzgarishi mumkin boʻlgan nomlangan xotira qutisi.",
+    "example": "ball = 5 yozuvi qutiga 5 sonini soladi.",
+    "workshop": "algoritm",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "shart",
+    "term": "Shart",
+    "shortDef": "Natijasi faqat rost yoki yolgʻon boʻladigan tekshiruv. Shartga qarab dastur yoʻlni tanlaydi.",
+    "example": "Agar yosh >= 12 rost boʻlsa, keyingi eshik ochiladi.",
+    "workshop": "mantiq",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "sikl",
+    "term": "Sikl",
+    "shortDef": "Bir xil harakatni belgilangan shart tugaguncha qayta-qayta bajaruvchi buyruq.",
+    "example": "4 marta oldinga yurish uchun bitta sikl yozish kifoya.",
+    "workshop": "algoritm",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "xato",
+    "term": "Xato",
+    "shortDef": "Dastur kutilgan natijani bermasligiga sabab boʻlgan notoʻgʻri buyruq yoki tartib.",
+    "example": "Buyruqlar oʻrni almashib qolsa, mashina boshqa natija chiqaradi.",
+    "workshop": "algoritm",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "takt",
+    "term": "Takt",
+    "shortDef": "Mashina soatining bitta zarbi. Har bir taktda bitta qadam bajariladi.",
+    "example": "1 takt bos tugmasi mashinani roppa-rosa bir qadam oldinga siljitadi.",
+    "workshop": "protsessor",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "tarmoq",
+    "term": "Tarmoq",
+    "shortDef": "Maʼlumotlarni paketlarga boʻlib almashadigan bogʻlangan kompyuterlar tizimi.",
+    "example": "Sahifa rasmi kichik paketlarda marshrutizator orqali keladi.",
+    "workshop": "tarmoq",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "parol",
+    "term": "Parol",
+    "shortDef": "Hisobingni begonalardan himoya qiladigan uzun va taxmin qilib boʻlmaydigan sirli belgi toʻplami.",
+    "example": "Uzun ibora oddiy tugʻilgan sana parolidan ancha mustahkam boʻladi.",
+    "workshop": "xavfsizlik-ai",
+    "reviewStatus": "draft"
+  },
+  {
+    "slug": "shifrlash",
+    "term": "Shifrlash",
+    "shortDef": "Xabarni maxfiy qoidaga koʻra oʻzgartirib, kalitsiz oʻqib boʻlmaydigan qilish usuli.",
+    "example": "Harflarni siljitish — eng sodda shifrlash misoli, lekin uni tezda buzish mumkin.",
+    "workshop": "xavfsizlik-ai",
+    "reviewStatus": "draft"
+  }
+]

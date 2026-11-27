@@ -1,0 +1,87 @@
+{
+  "id": "w5-09-list-push-get",
+  "workshop": "algoritm",
+  "orderNumber": 9,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "build",
+  "title": "Roʻyxatga qoʻshish va indeks bilan oʻqish",
+  "customerName": "Bogʻbon Bobur",
+  "goalKey": "algoritm.w5-09-list-push-get.goal",
+  "goalText": "narxlar = [10, 20] roʻyxatiga kirish sonini qoʻsh, soʻng 0- va 2-indeksdagi sonlarni qoʻshib chiqar.",
+  "parts": ["SET", "LIST_SET", "LIST_PUSH", "LIST_GET", "ADD", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [15] }, "expected": { "outputs": [25] } },
+      { "id": "v2", "input": { "inputs": [30] }, "expected": { "outputs": [40] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [0] }, "expected": { "outputs": [10] } }
+    ]
+  },
+  "par": { "instructions": 8, "ticks": 8 },
+  "hints": [
+    "Roʻyxat indekslari 1 dan emas, 0 dan boshlanadi.",
+    "LIST_PUSH yangi elementni 2-indeksga joylaydi.",
+    "0-indeks (10) va 2-indeksni olib, ADD bilan qoʻsh."
+  ],
+  "feedbackRules": [
+    {
+      "id": "index-oob",
+      "pattern": "error:index_out_of_bounds",
+      "misconception": "Read beyond list bounds (assumed 1-based indexing)",
+      "messageKey": "feedback.indexOob"
+    },
+    {
+      "id": "list-sum",
+      "pattern": "always",
+      "misconception": "Picked wrong list index",
+      "messageKey": "feedback.listIndex"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.indexOob": "Roʻyxat chegarasidan chiqib ketding! 3 ta elementning indekslari 0, 1 va 2 boʻladi.",
+    "feedback.listIndex": "Indekslarni esla: 0 — birinchi element (10), 2 — yangi qoʻshilgan uchinchi element."
+  },
+  "reflectQuestion": {
+    "question": "3 ta elementi bor roʻyxatning oxirgi indeksi nechaga teng?",
+    "options": ["2 ga, chunki sanash 0 dan boshlanadi", "3 ga", "1 ga"],
+    "correctIndex": 0,
+    "explanation": "Dasturlashda roʻyxat indekslari 0, 1, 2 tartibida sanaladi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "LIST_SET", "list": "narxlar", "items": [10, 20] },
+        { "op": "SET", "target": "yangi", "value": { "kind": "input" } },
+        { "op": "LIST_PUSH", "list": "narxlar", "value": { "kind": "var", "name": "yangi" } }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "LIST_SET", "list": "narxlar", "items": [10, 20] },
+        { "op": "SET", "target": "yangi", "value": { "kind": "input" } },
+        { "op": "LIST_PUSH", "list": "narxlar", "value": { "kind": "var", "name": "yangi" } },
+        { "op": "LIST_GET", "target": "birinchi", "list": "narxlar", "index": { "kind": "lit", "value": 0 } },
+        { "op": "LIST_GET", "target": "oxirgi", "list": "narxlar", "index": { "kind": "lit", "value": 2 } },
+        {
+          "op": "ADD",
+          "target": "jami",
+          "left": { "kind": "var", "name": "birinchi" },
+          "right": { "kind": "var", "name": "oxirgi" }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "jami" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 100,
+  "reviewStatus": "draft"
+}

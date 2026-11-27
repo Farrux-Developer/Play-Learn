@@ -1,0 +1,123 @@
+{
+  "id": "w5-var-add",
+  "workshop": "algoritm",
+  "orderNumber": 2,
+  "skillIds": ["algo-sequence"],
+  "kind": "build",
+  "title": "Ikki sonni qoʻshuvchi quti",
+  "customerName": "Oshpaz Aziz",
+  "goalKey": "algoritm.w5-var-add.goal",
+  "goalText": "Ikkita kiruvchi savat sonini qoʻshib, umumiy yigʻindini chiqar.",
+  "parts": ["SET", "ADD", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [5, 3] }, "expected": { "outputs": [8] } },
+      { "id": "v2", "input": { "inputs": [10, 0] }, "expected": { "outputs": [10] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [14, 27] }, "expected": { "outputs": [41] } }
+    ],
+    "generatorSeed": 501,
+    "generator": { "kind": "vm-add", "count": 4, "min": 1, "max": 30 }
+  },
+  "par": { "instructions": 5, "ticks": 5 },
+  "hints": [
+    "Har bir kiruvchi sonni alohida oʻzgaruvchi qutisiga saqla.",
+    "ADD buyrugʻi bilan ikkita quti qiymatini yigʻindiga qoʻsh.",
+    "Yigʻindini OUT orqali chiqar va HLT bilan toʻxtat."
+  ],
+  "feedbackRules": [
+    {
+      "id": "missing-out",
+      "pattern": "empty_output",
+      "misconception": "Computed value in memory without emitting output",
+      "messageKey": "feedback.missingOut"
+    },
+    {
+      "id": "loop-timeout",
+      "pattern": "error:tick_limit_exceeded",
+      "misconception": "Created unbounded jump without HLT",
+      "messageKey": "feedback.tickLimit"
+    },
+    {
+      "id": "input-short",
+      "pattern": "error:input_exhausted",
+      "misconception": "Read input more than twice",
+      "messageKey": "feedback.inputShort"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.missingOut": "Hisob qutida qoldi — natijani OUT buyrugʻi bilan ekranga chiqar.",
+    "feedback.tickLimit": "Mashina cheksiz aylanyapti — oxiriga HLT qoʻy.",
+    "feedback.inputShort": "Faqat 2 ta kirish soni bor, ularni a va b qutilariga bittadan saqla."
+  },
+  "workedExample": {
+    "title": "Qutilar bilan qoʻshish",
+    "steps": [
+      {
+        "instructionText": "SET a = kirish · SET b = kirish",
+        "note": "Birinchi son a qutisiga, ikkinchi son b qutisiga tushadi.",
+        "vars": { "a": 5, "b": 3 }
+      },
+      {
+        "instructionText": "ADD yigindi = a + b",
+        "note": "Ikkala quti qiymati qoʻshilib yangi yigindi qutisiga saqlanadi.",
+        "vars": { "a": 5, "b": 3, "yigindi": 8 }
+      },
+      {
+        "instructionText": "OUT yigindi · HLT",
+        "note": "Ekranga 8 chiqadi.",
+        "vars": { "a": 5, "b": 3, "yigindi": 8 },
+        "outputs": [8]
+      }
+    ]
+  },
+  "predictPrompt": {
+    "question": "Agar a = 5 va b = 3 boʻlsa, ADD yigindi = a + b qadamidan keyin a qutisi oʻzgaradimi?",
+    "options": ["Yoʻq, a hamon 5 qoladi", "Ha, a 8 ga aylanadi", "Ha, a 0 boʻlib qoladi"],
+    "correctIndex": 0,
+    "explanation": "ADD buyrugʻi a va b dan nusxa olib oʻqiydi, shuning uchun ular oʻzgarmaydi."
+  },
+  "reflectQuestion": {
+    "question": "Nega bitta oʻzgaruvchi emas, ikkita quti (a va b) ishlatdik?",
+    "options": [
+      "Ikkala kirish sonini ham yoʻqotmasdan birga qoʻshish uchun",
+      "Mashina faqat b nomli qutini tushunadi",
+      "HLT ikkita qutisiz ishlamaydi"
+    ],
+    "correctIndex": 0,
+    "explanation": "Har bir qiymat alohida nomli qutida saqlansa, ular bir-birini oʻchirib yubormaydi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } },
+        {
+          "op": "ADD",
+          "target": "yigindi",
+          "left": { "kind": "var", "name": "a" },
+          "right": { "kind": "var", "name": "b" }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "yigindi" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 75,
+  "reviewStatus": "draft"
+}

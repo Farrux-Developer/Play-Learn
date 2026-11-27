@@ -8,7 +8,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
-import { PhCheck, PhPlay, PinStarIcon } from '@/components/icons/WorkshopIcons';
+import { PhCheck } from '@/components/icons/SectionIcons';
+import { PhPlay, PinStarIcon } from '@/components/icons/WorkshopIcons';
 import { ChoiceTile } from '@/components/ui/ChoiceTile';
 import { WORKSHOPS } from '@/lib/data/workshop';
 import { WORKSHOP_STRINGS } from '@/lib/engine/i18n';
@@ -78,7 +79,7 @@ export function DiagnosticModal({
   };
 
   const handleSelect = (idx: number) => {
-    if (checked) return;
+    if (checked || !q) return;
     setSelected(idx);
     setChecked(true);
     onAnswerFeedback?.(idx === q.correctIndex);
@@ -143,7 +144,72 @@ export function DiagnosticModal({
             </Dialog.Close>
           </div>
 
-          {!doneResult ? (
+          {doneResult ? (
+            <div className="space-y-4 rounded-[16px] border-2 border-[var(--ok)] bg-[#19B7A6]/12 p-4">
+              {/* A19 Staggered enamel star pins (--spring-jelly) */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-[var(--ok-ink)]">
+                  <PhCheck size={24} weight="fill" />
+                  <h3 className="font-[family-name:var(--font-display)] text-lg font-extrabold text-[var(--on-surface)]">
+                    {t.diagDoneTitle}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5" aria-hidden="true">
+                  {[0, 1, 2].map((starIdx) => {
+                    const earned = starIdx < Math.max(1, doneResult.correctCount);
+                    return (
+                      <span
+                        key={starIdx}
+                        className={
+                          earned && !liteMode && !motionPaused
+                            ? 'ws-pin-pop inline-block'
+                            : 'inline-block'
+                        }
+                        style={{
+                          animationDelay: `${starIdx * 160}ms`,
+                          opacity: earned ? 1 : 0.3,
+                        }}
+                      >
+                        <PinStarIcon size={26} />
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <p className="text-[15px] font-medium">
+                Natija:{' '}
+                <strong className="ws-tabular">
+                  {doneResult.correctCount} / {doneResult.total}
+                </strong>{' '}
+                toʻgʻri javob va{' '}
+                <strong className="ws-tabular text-[var(--ok-ink)]">
+                  +{shownXp} XP
+                </strong>
+                !
+              </p>
+              <p className="text-[14px] text-[var(--on-surface-muted)]">
+                Tavsiya etilgan boshlangʻich ustaxona:{' '}
+                <strong className="text-[var(--on-surface)]">
+                  {
+                    WORKSHOPS.find(
+                      (w) => w.id === doneResult.recommendedWorkshop
+                    )?.title
+                  }
+                </strong>
+              </p>
+              <button
+                type="button"
+                onClick={handleFinishAndGo}
+                className={`ws-key-btn ws-key-btn--primary min-h-[48px] w-full ${
+                  !liteMode && !motionPaused ? 'ws-cta-pulse-once' : ''
+                }`}
+              >
+                <span>{t.diagGoWorkshop}</span>
+                <PhPlay size={14} weight="fill" className="ws-key-icon" />
+              </button>
+            </div>
+          ) : q ? (
             <div className="space-y-4">
               {/* Step progress segments */}
               <div
@@ -212,72 +278,7 @@ export function DiagnosticModal({
                 </button>
               </div>
             </div>
-          ) : (
-            <div className="space-y-4 rounded-[16px] border-2 border-[var(--ok)] bg-[#19B7A6]/12 p-4">
-              {/* A19 Staggered enamel star pins (--spring-jelly) */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-[var(--ok-ink)]">
-                  <PhCheck size={24} weight="fill" />
-                  <h3 className="font-[family-name:var(--font-display)] text-lg font-extrabold text-[var(--on-surface)]">
-                    {t.diagDoneTitle}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-1.5" aria-hidden="true">
-                  {[0, 1, 2].map((starIdx) => {
-                    const earned = starIdx < Math.max(1, doneResult.correctCount);
-                    return (
-                      <span
-                        key={starIdx}
-                        className={
-                          earned && !liteMode && !motionPaused
-                            ? 'ws-pin-pop inline-block'
-                            : 'inline-block'
-                        }
-                        style={{
-                          animationDelay: `${starIdx * 160}ms`,
-                          opacity: earned ? 1 : 0.3,
-                        }}
-                      >
-                        <PinStarIcon size={26} />
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <p className="text-[15px] font-medium">
-                Natija:{' '}
-                <strong className="ws-tabular">
-                  {doneResult.correctCount} / {doneResult.total}
-                </strong>{' '}
-                toʻgʻri javob va{' '}
-                <strong className="ws-tabular text-[var(--ok-ink)]">
-                  +{shownXp} XP
-                </strong>
-                !
-              </p>
-              <p className="text-[14px] text-[var(--on-surface-muted)]">
-                Tavsiya etilgan boshlangʻich ustaxona:{' '}
-                <strong className="text-[var(--on-surface)]">
-                  {
-                    WORKSHOPS.find(
-                      (w) => w.id === doneResult.recommendedWorkshop
-                    )?.title
-                  }
-                </strong>
-              </p>
-              <button
-                type="button"
-                onClick={handleFinishAndGo}
-                className={`ws-key-btn ws-key-btn--primary min-h-[48px] w-full ${
-                  !liteMode && !motionPaused ? 'ws-cta-pulse-once' : ''
-                }`}
-              >
-                <span>{t.diagGoWorkshop}</span>
-                <PhPlay size={14} weight="fill" className="ws-key-icon" />
-              </button>
-            </div>
-          )}
+          ) : null}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

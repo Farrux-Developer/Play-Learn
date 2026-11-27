@@ -1,0 +1,104 @@
+{
+  "id": "w5-06-max-two",
+  "workshop": "algoritm",
+  "orderNumber": 6,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "arrange",
+  "title": "Ikki sondan kattasini tanlash",
+  "customerName": "Bojxonachi Temur",
+  "goalKey": "algoritm.w5-06-max-two.goal",
+  "goalText": "Ikki kiruvchi sondan kattasini topib chiqaradigan qadamlarni toʻgʻri tartibla.",
+  "parts": ["SET", "LABEL", "JUMP_IF", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [8, 13] }, "expected": { "outputs": [13] } },
+      { "id": "v2", "input": { "inputs": [20, 9] }, "expected": { "outputs": [20] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [7, 7] }, "expected": { "outputs": [7] } }
+    ],
+    "generatorSeed": 506,
+    "generator": { "kind": "vm-max2", "count": 4, "min": 1, "max": 40 }
+  },
+  "par": { "instructions": 7, "ticks": 6 },
+  "hints": [
+    "Avval ikkala kirishni a va b qutilariga saqla.",
+    "JUMP_IF a >= b rost boʻlsa a_katta yorligʻiga sakrash kerak.",
+    "Sakrashdan oldingi tarmoqda b ni chiqar va HLT bilan toʻxtat."
+  ],
+  "feedbackRules": [
+    {
+      "id": "missing-halt",
+      "pattern": "always",
+      "misconception": "Branch order or HLT placement leaked into second output",
+      "messageKey": "feedback.maxOrder"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.maxOrder": "Sakrash sharti va HLT joylashuvini tekshir: faqat bitta kattasi chiqishi kerak."
+  },
+  "predictPrompt": {
+    "question": "Agar a = 8 va b = 13 boʻlsa, JUMP_IF a >= b sakraydimi?",
+    "options": ["Yoʻq, pastdagi OUT b bajariladi", "Ha, a_katta ga sakraydi", "Ikkala son ham chiqadi"],
+    "correctIndex": 0,
+    "explanation": "8 >= 13 yolgʻon boʻlgani uchun mashina sakramaydi va katta boʻlgan b (13) ni chiqaradi."
+  },
+  "reflectQuestion": {
+    "question": "Ikkala son teng boʻlganda (7 va 7) qaysi tarmoq ishlaydi?",
+    "options": [
+      "a >= b rost boʻlgani uchun a_katta tarmogʻi ishlaydi va 7 chiqadi",
+      "Hech biri ishlamaydi",
+      "Mashina xato beradi"
+    ],
+    "correctIndex": 0,
+    "explanation": "Katta yoki teng (>=) teng sonlarda ham rost qaytargani uchun 7 toʻgʻri chiqariladi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "a" },
+          "cmp": ">=",
+          "right": { "kind": "var", "name": "b" },
+          "targetLabel": "a_katta"
+        },
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } },
+        { "op": "OUT", "value": { "kind": "var", "name": "a" } },
+        { "op": "HLT" },
+        { "op": "LABEL", "label": "a_katta" },
+        { "op": "OUT", "value": { "kind": "var", "name": "b" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "a", "value": { "kind": "input" } },
+        { "op": "SET", "target": "b", "value": { "kind": "input" } },
+        {
+          "op": "JUMP_IF",
+          "left": { "kind": "var", "name": "a" },
+          "cmp": ">=",
+          "right": { "kind": "var", "name": "b" },
+          "targetLabel": "a_katta"
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "b" } },
+        { "op": "HLT" },
+        { "op": "LABEL", "label": "a_katta" },
+        { "op": "OUT", "value": { "kind": "var", "name": "a" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 80,
+  "reviewStatus": "draft"
+}
