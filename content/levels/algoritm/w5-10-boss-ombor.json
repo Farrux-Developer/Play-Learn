@@ -1,7 +1,7 @@
 {
   "id": "w5-10-boss-ombor",
   "workshop": "algoritm",
-  "orderNumber": 10,
+  "orderNumber": 11,
   "skillIds": ["algo-sequence", "algo-branch-loop"],
   "kind": "boss",
   "title": "Imtihon: kattasigacha yigʻindi hisoblash",

@@ -14,7 +14,7 @@
     "content:new": "tsx scripts/content-new.ts",
     "budget:check": "node scripts/check-budgets.mjs",
     "check": "npm run typecheck && npm run lint && npm run test:node && npm run test:unit && npm run content:check",
-    "verify": "npm run check && NODE_ENV=production npm run build && npm run budget:check",
+    "verify": "npm run check && node scripts/verify-build.mjs && npm run budget:check",
     "clean": "next clean",
     "generate:assets": "node scripts/generate-tokens.mjs && node scripts/generate-rough-paths.mjs"
   },
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.11",
     "@tailwindcss/typography": "^0.5.19",
-    "@types/node": "^20",
+    "@types/node": "^22.20.7",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "9.39.1",

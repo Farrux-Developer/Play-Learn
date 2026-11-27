@@ -33,7 +33,7 @@ import { motionCore, type QualityTier } from '@/lib/motion/core';
 
 const GearTrain = dynamic(
   () => import('@/components/GearTrain').then((m) => m.GearTrain),
-  { ssr: true }
+  { ssr: false }
 );
 
 const HUD_FRAME_PATH =

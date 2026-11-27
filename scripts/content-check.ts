@@ -188,10 +188,31 @@ for (const file of levelFiles) {
   }
   seenLevelIds.add(level.id);
 
-  for (const text of [level.title, ...level.hints]) {
+  for (const text of [level.title, level.goalText ?? '', ...level.hints]) {
+    if (!text) continue;
     const issues = findUzbekApostropheIssues(text);
     for (const issue of issues) {
       errors.push(`Forbidden apostrophe in level (${level.id}): "${issue.snippet}"`);
+    }
+  }
+
+  // Validate skillIds exist & feedbackRule messageKeys resolve cleanly
+  if (Array.isArray(skillsRaw)) {
+    const validSkills = new Set(
+      (skillsRaw as { id?: string }[]).map((s) => s.id).filter(Boolean)
+    );
+    for (const sid of level.skillIds) {
+      if (!validSkills.has(sid)) {
+        errors.push(`Level "${level.id}" references unknown skill "${sid}"`);
+      }
+    }
+  }
+
+  for (const rule of level.feedbackRules) {
+    if (level.feedbackMessages && !(rule.messageKey in level.feedbackMessages)) {
+      errors.push(
+        `Level "${level.id}" feedbackRule "${rule.id}" references missing messageKey "${rule.messageKey}"`
+      );
     }
   }
 

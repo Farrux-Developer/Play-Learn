@@ -449,6 +449,24 @@ export function GamesSection({
             )}
           </Tabs.Panel>
         </Tabs.Root>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[18px] border-2 border-[var(--accent)] bg-[#07264B] p-5 text-[#EAF2FF] shadow-[var(--sh-3)]">
+          <div>
+            <p className="font-[family-name:var(--font-display)] text-lg font-extrabold">
+              Toʻliq Mirzo Ustaxonasi oʻyinini oching
+            </p>
+            <p className="mt-1 text-[14.5px] text-[#B6CCE8]">
+              Qadam-baqadam bajarish, orqaga qaytarish, taxmin va imtihon darajalari.
+            </p>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
+            href="/uz/play/algoritm/w5-01-seq-order"
+            className="ws-key-btn ws-key-btn--primary min-h-[48px] px-5 no-underline"
+          >
+            Mirzo Ustaxonasiga kirish →
+          </a>
+        </div>
       </div>
     </section>
   );

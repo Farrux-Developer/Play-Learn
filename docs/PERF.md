@@ -22,12 +22,9 @@
 
 ## Phase 2 Simulation & Bundle Measurements (2026-11-27)
 
-- **Host Machine**: `linux` (`x86_64`), `4` vCPUs (container reports CPU model `"unknown"`), Node `v22.23.5`.
-- **`10,006`-tick `runVm` benchmark** (`mirzo-v1` board loop, 5 warmup runs + 20 timed runs via `performance.now()`):
-  - `min`: **`0.962 ms`**
-  - `median`: **`1.187 ms`**
-  - `p95`: **`4.258 ms`**
-- **Bundle check after adding `lib/game/core` + `lib/game/worker`**:
-  - Landing `/`: **`119.5 KB gz`** / `120.0 KB gz` (`PASS`, `+0.0 KB` change)
-  - `/design-gallery`: **`109.0 KB gz`** / `250.0 KB gz` (`PASS`, `+0.0 KB` change)
+- **Host Machine (Original Linux)**: `linux` (`x86_64`), `4` vCPUs, Node `v22.23.5` — `10,006`-tick `runVm`: `min 0.962 ms` / `median 1.187 ms` / `p95 4.258 ms`.
+- **Host Machine (Windows Verified)**: `Windows`, `Intel(R) Core(TM) i5-5200U CPU @ 2.20GHz` (`2` cores / `4` logical processors), Node `v26.5.1` — `10,006`-tick `runVm`: `min 1.12 ms` / `median 2.457 ms` / `p95 40.896 ms`.
+- **Bundle check on Windows (`npm run verify`) after ADR-0006 `GearTrain` SVG-only cleanup**:
+  - Landing `/`: **`119.4 KB gz`** / `120.0 KB gz` (`PASS`)
+  - `/design-gallery`: **`108.9 KB gz`** / `250.0 KB gz` (`PASS`)
 

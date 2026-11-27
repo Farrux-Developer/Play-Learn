@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { loadSkills } from '@/lib/game/content/loaders';
+import { getAllSkills } from '@/lib/game/content/loaders';
 import { LEVEL_KINDS } from '@/lib/game/core/types';
 import {
   applyMasteryDecay,
@@ -106,7 +106,7 @@ describe('Mastery model & Leitner-5 scheduler', () => {
   });
 
   it('softly decays overdue skills and prioritizes them in buildRepairQueue', () => {
-    const defs = loadSkills();
+    const defs = getAllSkills();
     const t0 = 1_000_000;
     const s1 = applySkillEvidence(createInitialSkillProgress('ipo-flow'), {
       skillId: 'ipo-flow',

@@ -1,0 +1,115 @@
+{
+  "id": "w5-10-func-call",
+  "workshop": "algoritm",
+  "orderNumber": 10,
+  "skillIds": ["algo-branch-loop"],
+  "kind": "build",
+  "title": "Funksiya: ikki marta bonus hisoblash",
+  "customerName": "Hisobchi Zafar",
+  "goalKey": "algoritm.w5-10-func-call.goal",
+  "goalText": "ikkitaga_oshir funksiyasini CALL bilan ikki marta chaqirib, kirish soniga +6 qoʻshib chiqar.",
+  "parts": ["SET", "ADD", "CALL", "RET", "LABEL", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "v1", "input": { "inputs": [4] }, "expected": { "outputs": [10] } },
+      { "id": "v2", "input": { "inputs": [0] }, "expected": { "outputs": [6] } }
+    ],
+    "hidden": [
+      { "id": "h1", "input": { "inputs": [19] }, "expected": { "outputs": [25] } }
+    ]
+  },
+  "par": { "instructions": 7, "ticks": 11 },
+  "hints": [
+    "Tayyor funksiyani chaqirish uchun CALL buyrugʻidan foydalan.",
+    "Funksiyani 1 marta chaqirsang +3 qoʻshadi, 2 marta CALL qilsang +6 boʻladi.",
+    "CALL dan keyin natijani OUT bilan chiqarib HLT qoʻy."
+  ],
+  "feedbackRules": [
+    {
+      "id": "missing-ret",
+      "pattern": "error:tick_limit_exceeded",
+      "misconception": "Fell into function without HLT before LABEL",
+      "messageKey": "feedback.missingHlt"
+    },
+    {
+      "id": "func-once",
+      "pattern": "always",
+      "misconception": "Called helper once or forgot OUT",
+      "messageKey": "feedback.funcTwice"
+    }
+  ],
+  "feedbackMessages": {
+    "feedback.missingHlt": "Asosiy dastur oxirida HLT boʻlmasa, mashina funksiya ichiga kirib ketadi.",
+    "feedback.funcTwice": "plus_uch funksiyasini ikki marta CALL bilan chaqir, keyin OUT ball va HLT qoʻy."
+  },
+  "workedExample": {
+    "title": "CALL va RET qanday ishlaydi?",
+    "steps": [
+      {
+        "instructionText": "CALL plus_uch",
+        "note": "Mashina qaytish manzilini eslab qolib, plus_uch yorligʻiga sakraydi.",
+        "vars": { "ball": 4 }
+      },
+      {
+        "instructionText": "ADD ball = ball + 3 · RET",
+        "note": "Funksiya 3 qoʻshadi va RET orqali chaqirilgan joyning keyingi qatoriga qaytadi.",
+        "vars": { "ball": 7 }
+      }
+    ]
+  },
+  "reflectQuestion": {
+    "question": "RET buyrugʻining asosiy vazifasi nima?",
+    "options": [
+      "Funksiya tugagach, chaqirilgan joyning keyingi qatoriga qaytaradi",
+      "Barcha oʻzgaruvchilarni oʻchiradi",
+      "Dasturni boshidan boshlaydi"
+    ],
+    "correctIndex": 0,
+    "explanation": "CALL qaytish manzilini stekka yozadi, RET esa oʻsha manzilga qaytaradi."
+  },
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } },
+        { "op": "CALL", "targetLabel": "plus_uch" },
+        { "op": "OUT", "value": { "kind": "var", "name": "ball" } },
+        { "op": "HLT" },
+        { "op": "LABEL", "label": "plus_uch" },
+        {
+          "op": "ADD",
+          "target": "ball",
+          "left": { "kind": "var", "name": "ball" },
+          "right": { "kind": "lit", "value": 3 }
+        },
+        { "op": "RET" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } },
+        { "op": "CALL", "targetLabel": "plus_uch" },
+        { "op": "CALL", "targetLabel": "plus_uch" },
+        { "op": "OUT", "value": { "kind": "var", "name": "ball" } },
+        { "op": "HLT" },
+        { "op": "LABEL", "label": "plus_uch" },
+        {
+          "op": "ADD",
+          "target": "ball",
+          "left": { "kind": "var", "name": "ball" },
+          "right": { "kind": "lit", "value": 3 }
+        },
+        { "op": "RET" }
+      ]
+    }
+  },
+  "estimatedSeconds": 80,
+  "reviewStatus": "draft"
+}

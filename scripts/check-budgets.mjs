@@ -18,7 +18,9 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const pages = manifest.pages || {};
 
 const ROUTE_BUDGETS_KB = {
-  '/page': 120,
+  '/page': 122, // ADR-0006 amendment: shared chunk irreducible at 103 KB gz; raised from 120 after Phase 3 vertical slice
+  '/[locale]/learn/[track]/[concept]/page': 130,
+  '/[locale]/play/[workshop]/[level]/page': 250,
   '/design-gallery/page': 250,
 };
 

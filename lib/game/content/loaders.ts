@@ -14,7 +14,9 @@ import w5MaxTwo from '@/content/levels/algoritm/w5-06-max-two.json';
 import w5LoopGuard from '@/content/levels/algoritm/w5-loop-guard.json';
 import w5CountdownModify from '@/content/levels/algoritm/w5-08-countdown-modify.json';
 import w5ListPushGet from '@/content/levels/algoritm/w5-09-list-push-get.json';
+import w5FuncCall from '@/content/levels/algoritm/w5-10-func-call.json';
 import w5BossOmbor from '@/content/levels/algoritm/w5-10-boss-ombor.json';
+import w5Sandbox from '@/content/levels/algoritm/w5-12-sandbox.json';
 import w4HalfAdder from '@/content/levels/mantiq/w4-half-adder.json';
 import skillsJson from '@/content/skills.json';
 import type { CoreWorkshopId } from '@/lib/game/core/types';
@@ -24,19 +26,23 @@ import type { GlossaryTerm, LevelDef, SkillDef } from './schemas';
 const ALL_SKILLS = skillsJson as SkillDef[];
 const ALL_GLOSSARY = glossaryUz as GlossaryTerm[];
 
-const ALL_LEVELS: LevelDef[] = [
-  w5SeqOrder as LevelDef,
-  w5VarAdd as LevelDef,
-  w5SwapTrace as LevelDef,
-  w5DiscountModify as LevelDef,
-  w5PassThreshold as LevelDef,
-  w5MaxTwo as LevelDef,
-  w5LoopGuard as LevelDef,
-  w5CountdownModify as LevelDef,
-  w5ListPushGet as LevelDef,
-  w5BossOmbor as LevelDef,
-  w4HalfAdder as LevelDef,
-].sort((a, b) => (a.orderNumber ?? 99) - (b.orderNumber ?? 99));
+const ALL_LEVELS: LevelDef[] = (
+  [
+    w5SeqOrder,
+    w5VarAdd,
+    w5SwapTrace,
+    w5DiscountModify,
+    w5PassThreshold,
+    w5MaxTwo,
+    w5LoopGuard,
+    w5CountdownModify,
+    w5ListPushGet,
+    w5FuncCall,
+    w5BossOmbor,
+    w5Sandbox,
+    w4HalfAdder,
+  ] as unknown as LevelDef[]
+).sort((a, b) => (a.orderNumber ?? 99) - (b.orderNumber ?? 99));
 
 export function getAllSkills(): readonly SkillDef[] {
   return ALL_SKILLS;

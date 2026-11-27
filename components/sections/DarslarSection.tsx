@@ -427,14 +427,23 @@ export function DarslarSection({
                       ? 'Barcha darslar tayyor!'
                       : 'Taxmin qilib koʻrgach ustaxonaga oʻt.'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={onGoGames}
-                    className="ws-key-btn ws-key-btn--primary min-h-[44px] px-4 py-2 text-[15px]"
-                  >
-                    <span>{WORKSHOP_STRINGS.nav.games}</span>
-                    <PhPlay size={14} weight="fill" className="ws-key-icon" />
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                    <a
+                      href="/uz/learn"
+                      className="ws-key-btn ws-key-btn--secondary min-h-[48px] px-4 py-2 text-[15px] no-underline"
+                    >
+                      Toʻliq darslar
+                    </a>
+                    <button
+                      type="button"
+                      onClick={onGoGames}
+                      className="ws-key-btn ws-key-btn--primary min-h-[48px] px-4 py-2 text-[15px]"
+                    >
+                      <span>{WORKSHOP_STRINGS.nav.games}</span>
+                      <PhPlay size={14} weight="fill" className="ws-key-icon" />
+                    </button>
+                  </div>
                 </div>
               </WorkshopCard>
             </motion.div>

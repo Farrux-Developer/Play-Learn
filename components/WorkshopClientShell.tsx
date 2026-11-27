@@ -43,11 +43,11 @@ const DarslarSection = dynamic(
 );
 const XaritaSection = dynamic(
   () => import('@/components/sections/XaritaSection').then((m) => m.XaritaSection),
-  { ssr: true }
+  { ssr: false }
 );
 const GamesSection = dynamic(
   () => import('@/components/sections/GamesSection').then((m) => m.GamesSection),
-  { ssr: true }
+  { ssr: false }
 );
 const TamoyillarSection = dynamic(
   () => import('@/components/sections/TamoyillarSection').then((m) => m.TamoyillarSection),

@@ -67,7 +67,9 @@
       "w5-loop-guard",
       "w5-08-countdown-modify",
       "w5-09-list-push-get",
-      "w5-10-boss-ombor"
+      "w5-10-func-call",
+      "w5-10-boss-ombor",
+      "w5-12-sandbox"
     ],
     "lessonSlug": "shart-va-sikl",
     "curriculumRef": null

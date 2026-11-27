@@ -1,0 +1,63 @@
+{
+  "id": "w5-12-sandbox",
+  "workshop": "algoritm",
+  "orderNumber": 12,
+  "skillIds": ["algo-sequence", "algo-branch-loop"],
+  "kind": "sandbox",
+  "title": "Erkin ustaxona: oʻz algoritmingni yoz",
+  "customerName": "Erkin ijod",
+  "goalKey": "algoritm.w5-12-sandbox.goal",
+  "goalText": "Istalgan buyruqlarni yigʻ, sonlarni sinab koʻr va oʻz dasturingni ishga tushir!",
+  "parts": ["SET", "ADD", "SUB", "MUL", "DIV", "MOD", "LIST_SET", "LIST_PUSH", "LIST_GET", "LABEL", "JUMP", "JUMP_IF", "CALL", "RET", "OUT", "HLT"],
+  "tests": {
+    "visible": [
+      { "id": "s1", "input": { "inputs": [5] }, "expected": {} }
+    ],
+    "hidden": []
+  },
+  "par": { "instructions": 10, "ticks": 40 },
+  "hints": [
+    "Qutiga son yozish uchun SET, chiqarish uchun OUT buyrugʻini tanla.",
+    "Sikl tuzish uchun LABEL va JUMP_IF juftligidan foydalan.",
+    "Oxirida HLT qoʻysang mashina tartibli toʻxtaydi."
+  ],
+  "feedbackRules": [],
+  "starterProgram": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } },
+        {
+          "op": "ADD",
+          "target": "ball",
+          "left": { "kind": "var", "name": "ball" },
+          "right": { "kind": "lit", "value": 3 }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "ball" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "referenceSolution": {
+    "engine": "vm",
+    "program": {
+      "isaVersion": "mirzo-v1",
+      "mode": "board",
+      "instructions": [
+        { "op": "SET", "target": "ball", "value": { "kind": "input" } },
+        {
+          "op": "ADD",
+          "target": "ball",
+          "left": { "kind": "var", "name": "ball" },
+          "right": { "kind": "lit", "value": 3 }
+        },
+        { "op": "OUT", "value": { "kind": "var", "name": "ball" } },
+        { "op": "HLT" }
+      ]
+    }
+  },
+  "estimatedSeconds": 180,
+  "reviewStatus": "draft"
+}

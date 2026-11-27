@@ -1,9 +1,6 @@
 /**
- * A05 Interlocked 24 / 36 / 18 Gear Train behind Mirzo:
- * - tier === 'high': lazy-loaded Three.js WebGLRenderer (no shadows, DPR <= 1.5)
- *   with MeshPhysicalMaterial clearcoat + RoomEnvironment reflections,
- *   subscribed to MotionCore's single ticker, render-on-demand when visible.
- * - tier === 'mid': crisp SVG 24/36/18 gear train rotating on events.
+ * A05 Interlocked 24 / 36 / 18 SVG Gear Train behind Mirzo (ADR-0006):
+ * - tier === 'high' | 'mid': crisp SVG 24/36/18 gear train rotating on events via MotionCore.
  * - tier === 'lite' / reduced-motion: static SVG gear poster.
  */
 'use client';
@@ -14,7 +11,7 @@ import { motionCore, type QualityTier } from '@/lib/motion/core';
 interface GearTrainProps {
   tier: QualityTier;
   motionPaused: boolean;
-  lookOffset: { x: number; y: number };
+  lookOffset?: { x: number; y: number };
   isHighPerfAllowed?: boolean;
 }
 
@@ -49,21 +46,14 @@ const SVG_GEAR_18 = createSvgGearPath(206, 122, 32, 26, 18);
 export function GearTrain({
   tier,
   motionPaused,
-  lookOffset,
 }: GearTrainProps) {
-  const hostRef = useRef<HTMLDivElement | null>(null);
   const svg24Ref = useRef<SVGGElement | null>(null);
   const svg36Ref = useRef<SVGGElement | null>(null);
   const svg18Ref = useRef<SVGGElement | null>(null);
-  const lookRef = useRef(lookOffset);
   const boostRef = useRef(1);
   const snapRef = useRef(0);
 
-  useEffect(() => {
-    lookRef.current = lookOffset;
-  }, [lookOffset]);
-
-  // Listen to xp:gain (3x speed burst) and workshop:unlock (+15 deg snap)
+  // Listen to xp:gain (3x speed burst), workshop:unlock (+15 deg snap), and machine:step
   useEffect(() => {
     const offXp = motionCore.on('xp:gain', () => {
       boostRef.current = 3;
@@ -84,10 +74,12 @@ export function GearTrain({
     };
   }, []);
 
-  // SVG gear rotation for mid tier (events) & fallback poster
+  // SVG gear rotation for mid/high tiers driven by MotionCore's single ticker
   useEffect(() => {
     if (tier === 'lite' || motionPaused) return;
-    if (tier === 'high') return; // Three.js handles high tier once loaded
+    const reduced =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (reduced) return;
 
     let deg = 0;
     let lastSnap = snapRef.current;
@@ -112,58 +104,12 @@ export function GearTrain({
     return () => offTick();
   }, [tier, motionPaused]);
 
-  // Gated Three.js WebGL glossy clearcoat gear train (tier: high + idle + visible)
-  useEffect(() => {
-    const container = hostRef.current;
-    if (!container || tier !== 'high' || motionPaused) return;
-    const reduced =
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    if (reduced) return;
-
-    let cancelled = false;
-    let cleanupThree: (() => void) | null = null;
-
-    const startIdle = () => {
-      const w = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number };
-      const load = () => {
-        void import('@/lib/motion/gearThree')
-          .then(({ mountThreeGearTrain }) =>
-            mountThreeGearTrain(container, {
-              getLookOffset: () => lookRef.current,
-              getBoost: () => boostRef.current,
-              getSnapDeg: () => snapRef.current,
-              isCancelled: () => cancelled,
-            })
-          )
-          .then((cleanup) => {
-            if (cancelled) cleanup?.();
-            else cleanupThree = cleanup;
-          })
-          .catch(() => {
-            // SVG poster remains visible
-          });
-      };
-      if (typeof w.requestIdleCallback === 'function') {
-        w.requestIdleCallback(load, { timeout: 1200 });
-      } else {
-        window.setTimeout(load, 250);
-      }
-    };
-
-    startIdle();
-    return () => {
-      cancelled = true;
-      cleanupThree?.();
-    };
-  }, [tier, motionPaused]);
-
   return (
     <div
-      ref={hostRef}
       aria-hidden="true"
       className="pointer-events-none absolute inset-x-2 top-2 h-44 overflow-hidden opacity-85"
     >
-      {/* Static / Mid-tier crisp 24-36-18 SVG gear poster (replaced by Three canvas on high) */}
+      {/* Crisp 24-36-18 SVG gear train */}
       <svg viewBox="0 0 260 180" className="h-full w-full" fill="none">
         <g
           ref={svg24Ref}
